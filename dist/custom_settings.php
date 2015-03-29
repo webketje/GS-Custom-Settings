@@ -50,7 +50,7 @@ function return_setting($tab, $setting, $prop=NULL) { return customSettings::ret
 function get_setting($tab, $setting)                { customSettings::getSetting($tab, $setting); }
 function get_tab_link($tab=NULL, $linkText='settings') {
 	global $custom_settings, $SITEURL;
-	$id = $tab ? '#' . $pluginOrTheme : '';
+	$id = $tab ? '#' . $tab : '';
 	echo '<a href="' . $SITEURL . 'admin/load.php?id=custom_settings' . $id . '">' . $linkText . '</a>';
 }
 // use only in combination with custom version checking

@@ -65,7 +65,7 @@ get_tab_link($tab=NULL, $linkText='settings')
 add_action('custom-settings-load', $function)
 // @param {string} $function - the function you want to execute before settings are loaded
 ````
-
+**Not available yet:**
 ````
 add_action('custom-settings-save', $function)
 // @param {string} $function - the function you want to execute after settings are saved
