@@ -57,4 +57,6 @@ function get_tab_link($tab=NULL, $linkText='settings') {
 function remove_setting($tab, $setting)             { customSettings::removeSetting($tab, $setting); }
 // use only in combination with custom version checking
 function set_setting($tab, $setting, $newValue)     { customSettings::setSetting($tab, $setting, $newValue); }
+
+exec_action('custom-settings-init');
 ?>

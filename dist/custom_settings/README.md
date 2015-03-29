@@ -62,11 +62,10 @@ get_tab_link($tab=NULL, $linkText='settings')
 #### Plugin hooks
 [More info](http://webketje.github.io/projects/gs-custom-settings/#hooks)
 ````
+add_action('custom-settings-init', $function)
+// @param {string} $function - the function you want to execute after settings are globalized
+````
+````
 add_action('custom-settings-load', $function)
-// @param {string} $function - the function you want to execute before settings are loaded
-````
-**Not available yet:**
-````
-add_action('custom-settings-save', $function)
-// @param {string} $function - the function you want to execute after settings are saved
+// @param {string} $function - the function you want to execute before settings are loaded in the plugin UI
 ````
