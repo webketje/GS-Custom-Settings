@@ -1,31 +1,10 @@
 <?php 
-// TODO: update create_data_subfolder function & test
-// TODO: update retrievePluginSettings to look like Theme Settings
 if (!class_exists('customSettings')) {
 
 	class customSettings {
-		private static $htDeny = 'Deny from all';
-		private static $htAllow = 'Allow from all';
+	
 		private static $defaultJSON = '{"site": []}';
 		
-		public static function LoadJsLibs() 
-		{
-			global $SITEURL;
-			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
-			
-			// set standard KO libraries (JS scripts and CSS styles, as well as fonts)
-			// with possibility to add plugin-specific ones in the plugin folder
-			
-			GSutils::registerLib('custom_settings', array(
-				'knockout'        => array($SITEURL . 'plugins/custom_settings/js/knockout.js',         '3.2.0',FALSE),
-				'fileSaver'        => array($SITEURL . 'plugins/custom_settings/js/FileSaver.js',        '1',FALSE),
-				'koBase'          => array($SITEURL . 'plugins/custom_settings/js/koBase.js',           '1.0',  TRUE),
-				'koStyle'         => array($SITEURL . 'plugins/custom_settings/css/ko-style.css',       '1.0',  'screen'),
-				'fontawesome'     => array($SITEURL . 'plugins/custom_settings/css/font-awesome.min.css', '4.3',  'screen'),
-				'koList'          => array($SITEURL . 'plugins/custom_settings/js/ko-list-component.js',           '1.0',  TRUE),
-				'main'            => array($SITEURL . 'plugins/custom_settings/js/main.js','1.0',  TRUE)
-			));
-		}		
 		
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
@@ -264,7 +243,7 @@ if (!class_exists('customSettings')) {
 		 *  @param {string} $tab
 		 *  @param {string} $setting
 		 */
-		public static function getSetting($tab, $setting) 
+		public static function getSetting($tab, $setting, $debug=FALSE) 
 		{
 			global $custom_settings, $custom_settings_dictionary;
 			if (isset($custom_settings['data'][$tab]) && isset($custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]])) {
@@ -327,11 +306,9 @@ if (!class_exists('customSettings')) {
 			global $custom_settings, $custom_settings_dictionary;
 			if (isset($custom_settings['data'][$tab])) {
 				if (isset($custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]])) {
-					$settingInArray = $custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]];
-					if (is_string($newValue)) {
+					if (strlen($newValue)) {
 						$custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]]['value'] = $newValue;
-					}
-					elseif (is_array($newValue)) {
+					}	elseif (is_array($newValue)) {
 						foreach ($newValue as $prop=>$val)
 							$custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]][$prop] = $val;
 					}
@@ -380,6 +357,17 @@ if (!class_exists('customSettings')) {
 				return 'true';
 			return $userdata->KO_EDIT;
 		}
+		
+		/** Used in contentFilter preg_replace_callback function
+		 *  No need to require filehandler.class.php, called in parent execution context
+		 *  @param {string} $matches - Match as returned by preg_replace_callback
+		 */
+		private static function contentReplaceCallback($matches) {
+			$jsonPath = fileUtils::splitPathArray($matches[1]);
+			$result = self::returnSetting($jsonPath[0], $jsonPath[1], 'value');
+			return $result;
+		}
+		
 		/** Filters (% setting: tab/setting %) text from Pages content 
 		 *  Hook: content
 		 */
@@ -388,14 +376,7 @@ if (!class_exists('customSettings')) {
 			$regex = '#\(%\s*setting[:=]\s*(\w*[\/]*\w*)\s*%\)#';
 			$new_content = html_entity_decode($content);
 			preg_match_all($regex, $new_content, $matches, PREG_OFFSET_CAPTURE);
-			if (!function_exists('func')) {
-				function func($matches) {
-					$jsonPath = fileUtils::splitPathArray($matches[1]);
-					$result = return_setting($jsonPath[0], $jsonPath[1], 'value');
-					return $result;
-				};
-			}
-			$new_content = preg_replace_callback($regex, 'func', $new_content);
+			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $new_content);
 			return $new_content;
 		}
 		
@@ -404,7 +385,6 @@ if (!class_exists('customSettings')) {
 		 */
 		public static function init() 
 		{
-		  self::createDataSubfolder();
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
 			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
 			global $LANG, $TEMPLATE, $SITEURL;
@@ -423,23 +403,130 @@ if (!class_exists('customSettings')) {
 		  <script type="text/template" id="setting-list-tmpl"><?php echo file_get_contents($tmpl . 'setting-list.html'); ?></script>
 		  <script type="text/template" id="setting-item-edit-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-edit.html'); ?></script>
 		  <script type="text/template" id="setting-item-manage-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-manage.html'); ?></script>
+		  <script type="text/javascript">
+		    window.i18nJSON = <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'); ?>;
+		  </script>
 		  <?php
 		}
-	/**
-	 *  Creates a data folder in /data/other with necessary .htaccess and main data file
-	 */
-	private static function createDataSubfolder() 
-	{
-		$path = GSDATAOTHERPATH . 'custom_settings/';
-		$file = 'data.json';
-		if (!file_exists($path)) mkdir($path);
-		if (!file_exists($path . '.htaccess'))
-			file_put_contents($path . '.htaccess','Deny from all');
-		if (!file_exists($path . $file)) {
-			$contents = self::$defaultJSON;
-			file_put_contents($path . $file, $contents);
+		
+		//////////////////////////////////////////////////////////////////////////
+		//                                                                      //
+		//                               Other                                  //
+		//                                                                      //
+		//////////////////////////////////////////////////////////////////////////
+		
+		/** Automatic Upgrade from v0.1
+		 *  
+		 */
+		public static function upgradeFromAlpha() 
+		{
+			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
+			$oldDataDir = GSDATAOTHERPATH . 'ko_data/';
+			$oldKODir = GSPLUGINPATH . 'ko_base/';
+			$oldPluginDir = GSPLUGINPATH . 'ko_site_settings/';
+			$oldPluginFile = GSPLUGINPATH . 'ko_site_settings.php';
+			
+			if (is_dir($oldKODir))
+				self::deleteDir($oldKODir);
+			if (is_dir($oldPluginDir)) 
+				self::deleteDir($oldPluginDir);
+			if (file_exists($oldPluginFile)) 
+				unlink($oldPluginFile);
+			if (file_exists($oldDataDir . 'ko_site_settings/data.json')) {
+				$newData = array('site' => array());
+				$oldData = json_decode(file_get_contents($oldDataDir . 'ko_site_settings/data.json'), TRUE);
+				if (isset($oldData['data']['settings']) && count($oldData['data']['settings'])) {
+					foreach ($oldData['data']['tabs'] as $tab) {
+						array_push($newData['site'], 
+							array(
+								'tab' => array(
+									'lookup' => $tab['lookup'], 
+									'label' => $tab['label']
+								),
+								'settings' => array()));
+							foreach ($oldData['data']['settings'] as $setting) {
+							  if ($tab['lookup'] === $setting['tab']) {
+									unset($setting['id']);
+									unset($setting['tab']);
+									array_push($newData['site'][count($newData['site'])-1]['settings'],  $setting);
+							  }
+							}
+						}
+						file_put_contents(GSDATAOTHERPATH . 'custom_settings/data.json', fileUtils::indentJSON(json_encode($newData)));
+					} 
+				}
+			self::deleteDir($oldDataDir);
 		}
-	}
+		/** Remove a directory with all nested files
+		 *  Thanks to http://stackoverflow.com/questions/3349753/delete-directory-with-files-in-it#answer-3349792
+		 */
+		public static function deleteDir($dirPath) {
+			if (is_dir($dirPath)) {
+	    if (substr($dirPath, strlen($dirPath) - 1, 1) != '/') {
+	      $dirPath .= '/';
+	    }
+	    $files = array_diff(scandir($dirPath), array('.', '..'));
+	    foreach ($files as $file) {
+	      if (is_dir($dirPath . $file)) {
+	        self::deleteDir($dirPath . $file);
+	      } else {
+	        unlink($dirPath . $file);
+	      }
+	    }
+	    rmdir($dirPath);
+	    }
+		}
+		/** Debugging
+		 *  @param {string} [$testName] - (Optional) Testname
+		 *  @param {array} $func - array('namespace', 'method') or 'functionName'
+		 *  @param {array} $params - Array with parameters for the function
+		 *  @param {string} $expect - Expected output
+		 */
+		public static function itShould($testName='', $func, $params, $expect) 
+		{
+			$output = '<table><tr><td><strong>' . $testName . '</strong></td></tr>';
+			$output .= '<tr><td>Function: customSettings::' . (is_array($func) ? $func[1] : $func) . '(' . implode(',', $params) . ')</td></tr>';
+			$output .= '<tr><td>Expects: <strong>' . $expect . '</strong></td><td><strong style="color: ' . (call_user_func_array($func, $params) === $expect ? 'green;">Succeeded' : 'red;">Failed');
+			$output .= '</strong></td></tr></table>';
+			echo $output;
+		}
+		
+		/** Loads JS & CSS resources for the plugin
+		 *  Used at start of main plugin file
+		 */
+		public static function LoadJsLibs() 
+		{
+			global $SITEURL;
+			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
+			// set standard KO libraries (JS scripts and CSS styles, as well as fonts)
+			// with possibility to add plugin-specific ones in the plugin folder
+			
+			GSutils::registerLib('custom_settings', array(
+				'knockout'        => array($SITEURL . 'plugins/custom_settings/js/knockout.js',         '3.2.0',FALSE),
+				'fileSaver'        => array($SITEURL . 'plugins/custom_settings/js/FileSaver.js',        '1',FALSE),
+				'koBase'          => array($SITEURL . 'plugins/custom_settings/js/koBase.js',           '1.0',  TRUE),
+				'koStyle'         => array($SITEURL . 'plugins/custom_settings/css/ko-style.css',       '1.0',  'screen'),
+				'fontawesome'     => array($SITEURL . 'plugins/custom_settings/css/font-awesome.min.css', '4.3',  'screen'),
+				'koList'          => array($SITEURL . 'plugins/custom_settings/js/ko-list-component.js',           '1.0',  TRUE),
+				'main'            => array($SITEURL . 'plugins/custom_settings/js/main.js','1.0',  TRUE)
+			));
+		}		
+		
+		/**
+		 *  Creates a data folder in /data/other with necessary .htaccess and main data file
+		 */
+		public static function createDataSubfolder() 
+		{
+			$path = GSDATAOTHERPATH . 'custom_settings/';
+			$file = 'data.json';
+			if (!file_exists($path)) mkdir($path);
+			if (!file_exists($path . '.htaccess'))
+				file_put_contents($path . '.htaccess','Deny from all');
+			if (!file_exists($path . $file)) {
+				$contents = self::$defaultJSON;
+				file_put_contents($path . $file, $contents);
+			}
+		}
 	}
 }
 ?>

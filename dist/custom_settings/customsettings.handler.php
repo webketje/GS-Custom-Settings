@@ -10,27 +10,22 @@
 		$token = $_REQUEST['requestToken'];
 		$id = $_REQUEST['id'];
 		$getToken = fileUtils::requestToken('kosstt');
+		echo $getToken;
 		if ($token === $getToken) {
 			if (isset($_REQUEST['action']) && isset($_REQUEST['path'])) {
 				$path = urldecode($_REQUEST['path']);
 				$data = isset($_REQUEST['data']) ? $_REQUEST['data'] : NULL;
 				switch($_REQUEST['action']) {
-					case 'saveData':
-						customSettings::saveAllSettings($data);
-						/*$custom_settings = customSettings::retrieveAllSettings();
-						$custom_settings_dictionary = customSettings::mapAllSettings();
-						exec_action('custom-settings-save');
-						customSettings::saveAllSettings(customSettings::mapSettingsByKind($custom_settings));*/
-						break;
-					case 'getLangFile':
-						echo file_get_contents($path);
+					case 'getI18NFile':
+						echo json_encode($i18n);
 						break;
 					case 'getDataFile':
 						exec_action('custom-settings-load');
 						echo json_encode($custom_settings);
 						break;
-					case 'getI18NFile':
-						echo json_encode($i18n);
+					case 'saveData':
+						customSettings::saveAllSettings($data);
+						exec_action('custom-settings-save');
 						break;
 					default: 
 						echo 'The data could not be loaded from the server';

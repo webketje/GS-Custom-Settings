@@ -9,17 +9,16 @@
 		</span>
 	</li>
 	<!-- ko foreach: data.filter -->
-		<li data-bind="css: {current: $root.data.activeItem() === $index()}">
-			<a data-bind="attr: { href: '#' + lookup() },	click: $root.data.setActive">
-				<input class="ko-side-input" type="text" data-bind="value: label, event: { change: $root.notif.tab_conflict}">
-			</a>
+		<li data-bind="css: {current: $root.data.activeItem() === $index()},click: $root.data.setActive">
+			<a data-bind="attr: { href: '#' + lookup() }">&nbsp;</a>
+			<input class="ko-side-input" type="text" data-bind="value: label, event: { change: $root.notif.tab_conflict}">
 		</li>
 	<!-- /ko -->
 <!-- /ko -->
 <!-- ko if: !mode.state() -->
 	<!-- ko foreach: data.items -->
-		<li data-bind="css: {current: $root.data.activeItem() === $index()}">
-			<a data-bind="text: label, attr: { href: '#' + lookup() },click: $root.data.setActive"></a>
+		<li data-bind="css: {current: $root.data.activeItem() === $index()},click: $root.data.setActive">
+			<a data-bind="text: label, attr: { href: '#' + lookup() }"></a>
 		</li>
 	<!-- /ko -->
 <!-- /ko -->

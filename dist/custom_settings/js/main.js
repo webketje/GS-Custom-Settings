@@ -2,7 +2,7 @@
  *  - OK: (only tab name of plugins/ site + messages) Unhardcode I18n
  *  - If value of options input is null, output should be saved as option 0
  *  - Provide window popup fallback for settings export
- *  - Test whether is translatable 
+ *  - Test whether tabs can be translatable 
  *  - Finalize notifier
  *  - Set no-select class only in edit mode
  */
@@ -35,23 +35,24 @@ function ViewModel(data) {
 	this.FEEDBACK = ko.observable(true);
 	this.notif = {
 		jsonImport: { 
-			tabExists:      [this.i18n['warn_jsonimport_tabexists'],      'notify'],
-			invalidJson:    [this.i18n['error_jsonimport_invalidjson'],   'error'],
-			invalidExt:     [this.i18n['error_jsonimport_invalidext'],    'error'],
-			invalidBrowser: [this.i18n['error_jsonimport_invalidbrowser'],'error']
+			invalidJson:    ['error_jsonimport_invalidjson',   'error'],
+			invalidExt:     ['error_jsonimport_invalidext',    'error'],
+			invalidBrowser: ['error_jsonimport_invalidbrowser','error'],
+			pluginMissing:  ['error_jsonimport_thememissing',  'error'],
+			themeMissing:   ['error_jsonimport_pluginmissing', 'error']
 		},
 		duplicate: {
-			settingLookups: [this.i18n['error_conflict_settings'],'error'],
-			tabLookups:     [this.i18n['error_conflict_tabs'],    'error']
+			settingLookups: ['error_conflict_settings','error'],
+			tabLookups:     ['error_conflict_tabs',    'error']
 		},
 		actions: {
-			clipBoardCopy:    ['Setting copied to clipboard', 'updated', false, 'short'],
-			tabRemove:        [this.i18n['warn_tab_remove'], 'notify', {ok: function() {singleSelectList.prototype.remove.apply(self.data);}}],
+			clipBoardCopy:    ['info_clipboardcopy', 'updated', false, 'short'],
+			tabRemove:        ['warn_tab_remove', 'notify', {ok: function() {singleSelectList.prototype.remove.apply(self.data);}}],
 			settingsRemove:   ['This action will irrevocably delete all selected settings. Are you sure you wish to proceed?', 'notify', {ok: function() {List.prototype.remove.apply(self.data.items()[self.data.activeItem()].settings)}}],
 			settingTypeChange:['This action will unset the setting\'s value. Are you sure you wish to proceed?', 'notify', {ok: ''}],
 			settingTabSwitch: ['This action will move all selected settings to another tab. Be sure to avoid naming conflicts.', 'notify', {ok: ''}],
-			saveSucceeded:    [this.i18n['SETTINGS_UPDATED'], 'updated'],
-			saveError:        [this.i18n['error_save'], 'error']
+			saveSucceeded:    ['SETTINGS_UPDATED', 'updated'],
+			saveError:        ['error_save', 'error']
 		},
 		lookup_change:  function(data) {/*  if (vm.FEEDBACK()) vm.notify('warn_change_label','notify'); */ },
 		type_change:    function(data) { /* if (vm.FEEDBACK() && data.hasValue()) vm.notify('warn_change_type','notify'); */ },
@@ -238,11 +239,17 @@ function ViewModel(data) {
 		switch (tabType) {
 			case 'site':
 				fileName = 'data.json';
-				data = data['site'];
+				var temp = {site: []};
+				for (var tabLookup in data) {
+					for (var tab in data[tabLookup]) {
+						temp.site.push(data[tabLookup][tab]);
+					}
+				}
+				data = temp;
 			break;
 			case 'theme':
 				fileName = 'theme_data_' + document.getElementById('site-template').value + '.json';
-				data = data['theme'];
+				data = {theme: document.getElementById('site-template').value, settings: data['theme']['settings']};
 			break;
 			case 'plugin':
 				fileName = 'plugin_data_' + lookup + '.json';
@@ -273,52 +280,81 @@ function ViewModel(data) {
 		saveTextAs(result, 'settings.json');
 	};
 	// Data import currently using JS FileAPI. Needs testing and alternative for IE9-
-	// Needs refactoring
 	this.fn.importData = function(data, e) {
 		var value = (e.target || e.srcElement).value,
 				file = (e.target || e.srcElement).files[0], fRead, result,
-				tabs = self.data.items(), 
-				tabObj = {};
-		
-		// check if a tab exists by lookup
-		function tabExists(tab) {
-			return ko.utils.arrayFirst(tabs, function(tab) {
-				return tab.lookup() === tab;
-			}) || false;
+				allTabs = self.data.items(), 
+				tabObj = {},
+				sType = (function settingsType() {
+					if (value.match('theme_data')) {
+						return 'theme';
+					} else if (value.match('plugin_data')) {
+						return 'plugin';
+					} else if (value.match(/\bdata.json/)) {
+						return 'site';
+					} else if (value.match('_data.json')) {
+						return 'tab';
+					}
+				}());
+		console.log(file);
+		function addNewTab(tab) {
+			var l = allTabs.length,
+					newTab = new self.data.itemModel({ 
+						tab: { lookup: tab.tab.lookup, label: tab.tab.label},
+						settings: tab.settings
+					});
+			// make sure we append the tab before plugins/ theme settings
+			while (l--)
+				if (allTabs[l].isTheme || allTabs[l].isPlugin) break;
+				self.data.items.splice(l || 0, 0, newTab);
 		}
-		var sType = (function settingsType() {
-			if (value.match('theme_data')) {
-				return 'theme';
-			} else if (value.match('plugin_data')) {
-				return 'plugin';
-			} else if (value.match('site_data.json')) {
-				return 'site';
-			} else if (value.match('_data.json')) {
-				return 'tab';
+		function replaceExistingTab(oldTab, newTab) {
+			var oldSettings = oldTab.settings.items(),
+					newSettings = newTab.settings,
+					newSettingsDictionary = ko.utils.arrayMap(newSettings, function(setting) { return setting.lookup; }),
+					modifiableProps = ['value','type','descr','access','label','options'];
+			
+			// first loop over all current settings
+			for (var i = 0; i < oldSettings.length; i++) {
+				var currentIndex = newSettingsDictionary.indexOf(oldSettings[i].lookup());
+				// set selected to false for all tab settings to avoid errors
+				oldSettings[i].selected(false);
+				// if the new setting's lookup is already present in current settings,
+				if (currentIndex > -1) { 
+					var currentNewItem = ko.utils.arrayFirst(newSettings, function(x) {
+						return x.lookup === oldSettings[i].lookup();
+					});
+					// don't overwrite the whole setting, replace on a per property basis
+					for (var prop in oldSettings[i]) {
+						if (inArray(prop, modifiableProps) && ko.unwrap(oldSettings[i][prop]) !== newSettings[currentIndex][prop]) {
+							// all replacable properties are observables, ok to call as function
+							if (prop === 'options' && currentNewItem[prop]) {
+								var temp = [];
+								ko.utils.arrayForEach(currentNewItem[prop], function(option, i) {
+									temp.push({val: option, index: i});
+								});
+								currentNewItem[prop] = temp;
+							}
+							oldSettings[i][prop](currentNewItem[prop]);
+						}
+					}
+					// remove replaced item's lookup from dictionary to keep only 'new' settings
+					newSettingsDictionary.splice(currentIndex, 1);
+				}
 			}
-		}());
-		
-		function tabDef(file) {
-			switch (sType) {
-				case 'theme':
-					tabObj.lookup = 'theme_settings';
-					tabObj.label = self.i18n['label_theme_settings'];
-					tabObj.isTheme = true;
-					tabObj.settings = file.settings;
-					break;
-				case 'plugin': 
-					tabObj.lookup = file.tab.lookup;
-					tabObj.label = file.tab.label;
-					tabObj.isPlugin = true;
-					tabObj.settings = file.settings;
-					break;
-				case 'tab': 
-					tabObj.lookup = file.tab.lookup;
-					tabObj.label = file.tab.label;
-					tabObj.settings = file.settings;
-					break;
+			console.log(newSettingsDictionary);
+			// if there are still new settings that didn't exist yet, add them
+			if (newSettingsDictionary.length) {
+				for (var i = 0; i < newSettingsDictionary.length; i++) {
+					var newSetting = ko.utils.arrayFirst(newSettings, function(x) {
+						return x.lookup === newSettingsDictionary[i];
+					});
+					oldTab.settings.items.push(new oldTab.settings.itemModel(newSetting));
+				}
 			}
-		};
+			// make sure Knockout views are updated
+			oldTab.settings.items.valueHasMutated();
+		}
 		// Check for the various File API support + additional select check
 		if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
 		  notify('jsonImport','invalidBrowser');
@@ -332,6 +368,7 @@ function ViewModel(data) {
 			fRead = new FileReader();
 	    fRead.readAsText(file);
 	    var waitForLoad = setInterval(function() {
+	      console.log(fRead.result);
 	      if (fRead.result.length) {
 	        try {
 						var result = JSON.parse(fRead.result);
@@ -339,65 +376,41 @@ function ViewModel(data) {
 						notify('jsonImport', 'invalidJson');
 						return;
 					}
-					if (sType === 'theme') {
-						var tabFound = findTab('isTheme', true),
-								newTab = new Tab({
-								tab: {
-									lookup: 'theme_settings', 
-									label: self.i18n['label_themesettings'], 
-									theme: true},
-								settings: result.settings}
-								);
-							
-						if (tabFound) {
-							ko.utils.arrayForEach(tabFound.settings.items(), function(setting) {
-								setting.selected(false);
-							});
-							tabFound = newTab;
-						} else {
-							self.data.items.push(newTab);
-						}
-						tabFound.settings.items.valueHasMutated();
-					} else if (sType === 'tab') {
-						var tabFound = findTab('lookup', result.tab.lookup),
-								newTab = new Tab({
-								tab: {
-									lookup: result.tab.lookup, 
-									label: result.tab.label, 
-									plugin: true },
-								settings: result.settings}
-							);
-							
-						if (tabFound) {
-							ko.utils.arrayForEach(tabFound.settings.items(), function(setting) {
-								setting.selected(false);
-							});
-							tabFound = newTab;
-						} else {
-							self.data.items.push(newTab);
-						}
-						tabFound.settings.items.valueHasMutated();
-					} else if (sType === 'site') {
-						
-					} else if (result.tab) {
-						var tabFound = findTab('lookup', result.tab.lookup);
-						if (tabFound) {
-							tabFound.settings.items.each(function(setting) {
-								setting.selected(false);
-							});
-							ko.utils.arrayForEach(result.settings, function(item, index) {
-								if (tabFound.settings.items()[index])
-									tabFound.settings.items()[index] = new tabFound.settings.itemModel(item);
-								else
-									tabFound.settings.items.push(new tabFound.settings.itemModel(item));
-							tabFound.settings.items()[index].value.valueHasMutated();
-							});
-							tabFound.settings.items.valueHasMutated();
-						} else {
-							self.data.items.push(newTab);
-						}
-					} else {
-						console.log(value);
+					console.log(sType);
+					switch (sType) {
+						case 'theme':
+							var themeTab = findTab('isTheme', true);
+							// only allow importing settings from the current theme
+							if (themeTab && result.theme === document.getElementById('site-template').value)
+								replaceExistingTab(themeTab, result);
+							else 
+								notify('jsonImport', 'themeMissing');
+						break;
+						case 'tab':
+							var singleTab = findTab('lookup', result.tab.lookup);
+							console.log(singleTab);
+							if (singleTab)
+								replaceExistingTab(singleTab, result);
+							else
+								addNewTab(result);
+						break;
+						case 'site':
+							for (var i = 0; i < result.site.length; i++) {
+								var singleTab = findTab('lookup', result.site[i].tab.lookup);
+								if (singleTab) {
+									replaceExistingTab(singleTab, result.site[i]);
+								} else
+									addNewTab(result.site[i]);
+							}
+						break;
+						case 'plugin':
+							var pluginTab = findTab('lookup', result.tab.lookup);
+							// only allow importing settings from an activated plugin
+							if (pluginTab && pluginTab.isPlugin)
+								replaceExistingTab(pluginTab, result);
+							else 
+								notify('jsonImport', 'pluginMissing');						
+						break;
 					}
 					clearInterval(waitForLoad);
 	      }
@@ -405,6 +418,14 @@ function ViewModel(data) {
 		}
 	};
 	this.data = this.fn.map(data.rawData.data);
+	if (location.href.match('#')) {
+		var anchor = location.href.slice(location.href.indexOf('#') + 1), tab = 0;
+		ko.utils.arrayForEach(this.data.items(), function(item, index) { 
+			if (item.lookup() === anchor)
+				tab = index;
+		});
+		this.data.activeItem(tab);
+	}
 	this.data.remove = function() {
 		if (self.data.items()[self.data.activeItem()].settings.items().length) 
 			notify('actions','tabRemove');
@@ -468,7 +489,7 @@ function Tab(opts) {
 	var self = this;
 	console.log(opts);
 	this.label = ko.observable(opts.tab.label);
-	this.lookup = ko.computed(function() { return makePHPSafe(self.label()); });
+	this.lookup = opts.tab.lookup === 'theme_settings' ? ko.observable('theme_settings') : ko.computed(function() { return makePHPSafe(self.label()); });
 	this.isPlugin = opts && opts.tab.plugin ? true : false;
 	this.isTheme = opts && opts.tab.theme ? true : false;
 	this.settings = new List({ data: opts && opts.settings || [], model: Setting, keys: true});
@@ -543,8 +564,17 @@ function Setting(opts) {
 	}) : []);
 	this.cachedType = '';
 	// misc for diff types of input 
-	this.display = ko.observable('');
-	this.icon = ['',''];
+	this.icon = ko.computed(function() {
+		return this.type() === 'fancy-checkbox' ? ['check-square-o','square-o'] :
+			(this.type() === 'fancy-radio' ? ['dot-circle-o','circle-o'] : 
+				(this.type() === 'switch' ? ['toggle-on','toggle-off'] : '')
+			)
+	}, this);
+	this.display =  ko.computed(function() {
+		var prefix = 'fa fa-lg fa-';
+		return self.value() !== false ? prefix + self.icon()[0] : prefix + self.icon()[1];
+	});
+	this.toggle = function() { this.value(!this.value())};
 	// state helpers
 	this.isOpen = new Switch(['plus-square','minus-square']);
 	this.isHidden = ko.computed(function() { return self.access() === 'hidden';	});
@@ -563,6 +593,8 @@ Setting.prototype.castValue = function() {
 	else
 		return val;
 };
+// setting type caching should prevent the setting's value from being reset,
+// when the type is changed, but the values are of the same type (booleans, options or text)
 Setting.prototype.cacheType = function() { this.cachedType = this.type();};
 Setting.prototype.changeInputType = function(data, e) { 
 		// TODO: Locked value input doesn't work when repeatedly switching
@@ -581,32 +613,15 @@ Setting.prototype.changeInputType = function(data, e) {
 				break;
 			case 'select':
 			case 'radio':
-			case 'fancy radio':
+			case 'fancy-radio':
 				if (target && !/select|radio/.test(this.cachedType))
 					this.value(0);
-				this.icon = ['dot-circle-o','circle-o'];
-				this.display = ko.computed(function(index) {
-					var prefix = 'fa fa-lg fa-';
-					return this.value() === index ? prefix + this.icon[0] : prefix + this.icon[1];
-				}, this);
 				break;
-			case 'fancy checkbox':
-				this.icon = ['check-square-o','square-o'];
-				this.display = ko.computed(function() {
-					var prefix = 'fa fa-lg fa-';
-					return this.value() ? prefix + this.icon[0] : prefix + this.icon[1];
-				}, this);
-				this.toggle = function() { this.value(!this.value())};
+			case 'fancy-checkbox':
 				if (typeof this.castValue() !== 'boolean')
 					this.value(false);
 				break;
 			case 'switch': 
-				this.icon = ['toggle-on','toggle-off'];
-				this.display = ko.computed(function() {
-					var prefix = 'fa fa-lg fa-';
-					return self.value() ? prefix + self.icon[0] : prefix + self.icon[1];
-				});
-				this.toggle = function() { this.value(!this.value())};
 				if (typeof this.castValue() !== 'boolean')
 					this.value(false);
 				break;
@@ -625,20 +640,13 @@ function initVM() {
 		}
 	});
 	function getLangFile() {
-		getJSONData(paths.lang, 'getLangFile', function(data, status, error) { 
-			var parsed;
-			if (data === null) {
-			//	vm.notify('ERROR','error');
-			} else {
-				parsed = parseJSON(data);	
+		console.log(window.i18nJSON);
+		var parsed = window.i18nJSON;	
 				if (!ajaxData.i18n)
 					ajaxData.i18n = {};
-				ajaxData.i18n.meta = { meta: parsed.meta, title: parsed.title };
 				for (var str in parsed.strings) {
 					ajaxData.i18n[str] = parsed.strings[str];
 				}
-			}
-		});
 		getData();
 	}
 	function getData() {

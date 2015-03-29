@@ -4,16 +4,16 @@
 		">
 		<!-- visible: $root.data.tabs.activeItem() === 'all' || tab() === $root.data.tabs.activeItem().lookup() -->
 	<div class="ko-1-1 ko-box ko-pad-5 ko-mb-5" style="margin-top: 3px;">
-		<span class="ko-toolbar">
+		<div class="ko-toolbar">
 		
-			<button type="button" data-bind="click: toggle, i18n: { title: 'prop_select_setting'}, attr: { style: selected() ? 'color: #CF3805;' : ''}">
+			<button type="button" data-bind="click: toggleSelect, i18n: { title: 'prop_select'}, attr: { style: selected() ? 'color: #CF3805;' : ''}">
 				<i class="fa fa-location-arrow"></i></button>
 			<button type="button" data-bind="
 				click: isOpen.toggle,
 				i18n: { title: 'prop_hide_show_details'}">
 				<i data-bind="attr: { 'class': 'fa fa-' + isOpen.display(), style: isOpen.state() ? 'color: #CF3805;' : ''}," class="open-setting-details"></i></button>
 			
-		</span>
+		</div>
 		<span class="ko-3-5" style="display: inline-block; width: 66%">
 			<!--@NPPBookmark Input label field -->
 			<span class="ko-1-2" style="display: inline-block;">
@@ -100,6 +100,6 @@
 		<label data-bind="i18n: 'label_descr', attr:{'for': names.descr}"></label>
 		<!-- TODO: Figure out how to make placeholder work in Mozilla FF -->
 		<textarea data-bind="value: descr, i18n: {placeholder: 'placeholder_descr'},
-			attr: {'name': names.descr, 'id': names.descr}" rows="4" class="ko-box"></textarea>
+			attr: {'name': names.descr, 'id': names.descr}" rows="4"></textarea>
 	</div>
 </div>

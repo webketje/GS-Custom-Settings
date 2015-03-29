@@ -4,6 +4,32 @@ if(typeof String.prototype.trim !== 'function') {
     return this.replace(/^\s+|\s+$/g, ''); 
   }
 }
+// IE8 indexOf polyfill 
+// https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(searchElement, fromIndex) {
+    var k;
+    if (this == null) {
+      throw new TypeError('"this" is null or not defined');
+    }
+    var O = Object(this);
+    var len = O.length >>> 0;
+    if (len === 0)
+      return -1;
+    var n = +fromIndex || 0;
+    if (Math.abs(n) === Infinity)
+      n = 0;
+    if (n >= len)
+      return -1;
+    k = Math.max(n >= 0 ? n : len - Math.abs(n), 0);
+    while (k < len) {
+      if (k in O && O[k] === searchElement)
+        return k;
+      k++;
+    }
+    return -1;
+  };
+}
 /* PHP-ify utility */
 function makePHPSafe(val) {
 	return val ? val.replace(/[\s\W]+(?!\w)/g, '').replace(/[\s\W]+(?=\w)/g, '_').toLowerCase().trim() : '';
@@ -19,16 +45,14 @@ function makePHPSafe(val) {
  
 ko_arrayToText = {};
 ko_arrayToText.name = 'array-to-text';
-ko_arrayToText.template = '<textarea data-bind="event: event, value: view, valueUpdate: valueUpdate, i18n: i18n, attr: attr"></textarea>';
+ko_arrayToText.template = '<textarea data-bind="value: view, i18n: i18n, attr: attr"></textarea>';
 
 ko_arrayToText.viewModel = function (params) {
 	var self = this;
   this.data = params.data;
   this.attr = params.attr || '';
   this.i18n = params.i18n || '';
-  this.valueUpdate = params && params.update ? params.update : '';
-  this.events = params && params.events ? params.events : '{}';
-  this.view = ko.pureComputed({
+  this.view = ko.computed({
     read: function() {
       var str = '', arr = ko.utils.unwrapObservable(this.data);
       ko.utils.arrayForEach(arr, function(item) {
@@ -117,9 +141,9 @@ ko.bindingHandlers.onewaySelect = {
 	init: function(element, valueAccessor, allBindings, ctx) {
 		var bindingOptions = valueAccessor(),
 				currentVal = ko.utils.unwrapObservable(bindingOptions.value),
-				action = bindingOptions.action;
-				
-		element.addEventListener('change', function(e) {
+				action = bindingOptions.action, 
+		    fn = element.addEventListener ? 'addEventListener' : 'attachEvent';
+		element[fn]('change', function(e) {
 			var setVal = element.value;
 			element.value = currentVal;
 			if (action && typeof action === 'function')

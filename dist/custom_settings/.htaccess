@@ -1,8 +1,6 @@
 <Files *.php>
-    Order Deny,Allow
-    Deny from all
+  Deny from all
 </Files>
 <Files customsettings.handler.php>
-    Order Allow,Deny
-    Allow from all
+  Allow from all
 </Files>

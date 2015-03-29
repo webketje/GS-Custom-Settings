@@ -12,7 +12,7 @@ var List = (function() {
 	    params.model.call(this, props || self.defaults);
 	    this.selected = ko.observable(false);
 	  }
-	  this.itemModel.prototype = Object.create(params.model.prototype);
+	  this.itemModel.prototype = Object.create ? Object.create(params.model.prototype) : params.model.prototype;
 	  this.itemModel.constructor = this.itemModel;
 	  this.items = ko.observableArray([]);
 	  if (params.data) {
@@ -34,7 +34,7 @@ var List = (function() {
 	  if (params.defaultActive > -1) {
 			this.items()[params.defaultActive].selected(true);
 		}
-	  this.itemModel.prototype.toggle = function(data, e) { 
+	  this.itemModel.prototype.toggleSelect = function(data, e) { 
 	    var items = self.items(), 
 	      activeItems = self.activeItems(),
 	      cacheValue = this.selected(), max, min;
@@ -289,6 +289,11 @@ singleSelectList.prototype.moveDown = function() {
 singleSelectList.prototype.setActive = function(data, e) {
 	var target = e.target || e.srcElement;
   ko.contextFor(target).$parent.data.activeItem(ko.contextFor(target).$index());
+  if (target.nodeName === 'LI')
+    target.getElementsByTagName('input')[0].focus();
+  else if (target.nodeName === 'A')
+    target.parentNode.getElementsByTagName('input')[0].focus();
+  return true;
 }
 return singleSelectList;
 }());

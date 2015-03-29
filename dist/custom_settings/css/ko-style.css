@@ -11,23 +11,44 @@
 .ko-box-padding:last-child { padding-right: 0;}
 .ko-box-padding:first-child { padding-left: 0; }
 /* TODO: adjust padding with line-height */
-.ko-main input[type="text"], .ko-main select, .ko-main textarea { padding:3px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px;	-o-border-radius: 3px; border-radius: 3px;	border: 1px solid #ddd; outline: none; max-width: 95%; }
+.ko-main input[type="text"], .ko-main select, .ko-main textarea { padding: 2px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px;	-o-border-radius: 3px; border-radius: 3px;	border: 1px solid #ddd; outline: none; max-width: 95%; }
 .ko-main input[type="text"]:focus, .ko-main select:focus, .ko-main textarea:focus {outline: 1px solid #BBB !important;}
 .ko-main input[type="text"]::-ms-clear, #sidebar input[type="text"]::-ms-clear { display: none; }
 .ko-main label, label { display: inline-block !important; font-size: 1.1em; margin-bottom: 5px;  }
-.ko-main input[type="text"], .ko-main select { height: 1.5em;}
 .ko-main select { padding: 0px;}
 /* detail display classes */
 .ko-code, .ko-input { border-radius: 3px; }
-.ko-main textarea { resize: none; width: 100%;	font-size: 1em;	font-family: inherit; }
+.ko-main textarea { resize: none; width: 100%;	font-size: 1em;	font-family: inherit; height: 62px; overflow: auto; line-height: 1.2em; box-sizing: content-box;}
 .ko-list>*, .ko-list-item { margin-bottom: 0px; position: relative; overflow: hidden; border-bottom: 1px solid #ccc;   }
 .ko-list.manage >*, .ko-list-item { padding: 5px 0; }
-.ko-main input[type="text"].ko-code, .ko-code { font-size: .9em; height: initial; font-family: monospace; font-weight: normal;	line-height: 1.4em;	background: #eee;	padding: 2px 4px;	display: inline-block; border-radius: 3px;}
-.ko-toolbar { background: #eee; padding: 2px 4px; border-radius: 3px; }
-.ko-toolbar button, .ko-main .ko-list-item button, .ko-main .ko-list button { border: none; background: transparent; padding: 0; font-size: inherit; outline: none;}
+.ko-main input[type="text"].ko-code, .ko-code { 
+	font-size: .9em; 
+	font-family: Consolas, monospace; 
+	font-weight: normal;	
+	background: #eee;	
+	padding: 2px 4px;	
+	border-radius: 3px;
+	box-sizing: content-box;
+}
+.ko-toolbar button, .ko-main .ko-list-item button, .ko-main .ko-list button { border: none; background: transparent; padding: 0; outline: none;}
+.ko-toolbar button {
+    display: block;
+    float: left;
+    padding: 0px;
+    margin: 0px;
+    font-size: 12px;
+    width: 11px;
+    height: 100%;
+    border: none;
+    outline: none;
+    vertical-align: middle;
+    cursor: default;
+    margin-right: 2px;
+}
 .ko-toolbar button:not([disabled]):hover i { color: #CF3805; }
+.ko-toolbar { background: #eee; padding: 2px 4px; border-radius: 3px; overflow: auto; height: 20px;}
 .ko-main .ko-box label:after, .ko-main .ko-box-padding label:after  { content: ':'; display: inline-block; }
-.ko-drawer .ko-toolbar {margin-right: 5px;}
+.ko-drawer .ko-toolbar {margin-right: 5px; float: left; overflow: auto; }
 .ko-drawer { border-bottom: 1px solid #ccc; transition: all .2s ease-in-out; -moz-transition: all .2s ease-in-out; -webkit-transition: all .2s ease-in-out; -o-transition: all .2s ease-in-out; }
 .ko-drawer select { text-transform: capitalize;}
 /* utility classes */
@@ -108,6 +129,8 @@ table.highlight {	max-width: 100%; table-layout: fixed; }
     user-select: none;
 }
 .ko-template { display: none; }
+#sidebar .snav li { position: relative; color: #afc5cf;}
+#sidebar .snav li.current { color: white;}
 #sidebar .snav li a:link, #sidebar .snav li a:visited { transition: background-color .2s ease-in-out; -moz-transition: background-color .2s ease-in-out; -webkit-transition: background-color .2s ease-in-out; -o-transition: background-color .2s ease-in-out; }
 #sidebar .snav li.ko-side-item.current, #sidebar .snav li.current a {
 text-shadow: 1px 1px 0px #9F2C04;
@@ -118,9 +141,13 @@ background: #CF3805 url('../../../admin/template/images/active.png') center left
 padding-left: 26px;
 margin-left: 1px;
 }
-.ko-side-item.current .ko-side-input { color: white;}
-.ko-side-input:focus { color: white; }
-.ko-side-input { background: transparent;	border: none;	outline: none; color: inherit; font-weight: bold;	font-size: 12px; width: 120px; }
+.ko-side-input { 
+top: 5px;
+left: 25px;
+position: absolute;
+background: transparent;	border: none;	outline: none; color: inherit; font-weight: bold;	font-size: 12px; width: 120px; }
+
+.ko-side-item.current .ko-side-input, .ko-side-input:focus { color: white;}
 .ko-main .manage input[type="radio"], .ko-main .manage input[type="checkbox"] { vertical-align: middle; }
 .ko-data.manage .ko-setting {	min-height: 25px;	height: initial; padding-bottom: 0; }
 .ko-data.manage .ko-setting textarea { margin-top: -10px; }
@@ -129,3 +156,24 @@ p.ko-setting-descr { float: left; margin: 0; font-style: italic; color: #666;}
 .ko-data.edit .ko-setting textarea { resize: none; overflow-y: auto; overflow-x: none;}
 .ko-data .ko-setting div { margin-bottom: 5px; overflow: visible;}
 .ko-data .ko-setting .ko-option label { display: inline-block; font-weight: normal; font-size: 1em;}
+#export-tab {
+    width: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    margin-right: -7px;
+    border-bottom-right-radius: 3px;
+    border-top-right-radius: 3px;
+    font-size: 1.375em;
+    margin-top: auto;
+    height: 1.5em;
+    border: medium none;
+    background: none repeat scroll 0% 0% transparent;
+    outline: medium none;
+    opacity: 0;
+    cursor: pointer;
+    background: #FFF;
+    text-transform: none;
+    cursor: default;
+    border: initial;
+}
