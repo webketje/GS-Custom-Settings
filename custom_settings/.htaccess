@@ -1,0 +1,6 @@
+<Files *.php>
+  Deny from all
+</Files>
+<Files customsettings.handler.php>
+  Allow from all
+</Files>
