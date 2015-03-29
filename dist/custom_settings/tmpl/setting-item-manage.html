@@ -1,0 +1,19 @@
+<!-- ko if: !isHidden() -->
+	<div class="ko-list-item" data-bind="css: { 'active': false }">
+		<div class="ko-3-5 ko-float-left">
+			<label data-bind="text: label, attr: {'for': lookup() + '-output'}" class="ko-mr-10"></label>
+			<span class="ko-1-3" style="display: inline-block;" data-bind="component: {
+				name: 'code-input', 
+				params: {
+					prefix: '(% setting: ',
+					suffix: '%)', 
+					data: $parents[1].lookup() + '/' + lookup(), 
+					tooltip: 'code_tip'}}">
+			</span>
+			<p data-bind="text: descr" class="ko-setting-descr ko-1-1"></p>
+		</div>
+		<!-- TODO: Put template binding into computed property -->
+		<div class="ko-float-right ko-text-right ko-2-5" data-bind="template: {name: (type() + '-input-tmpl').replace(/\s+/g,'-'), data: $data}"></div>
+		<div class="ko-clearfix"></div>
+	</div>
+<!-- /ko -->

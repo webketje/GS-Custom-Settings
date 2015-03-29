@@ -1,0 +1,17 @@
+<div class="ko-toolbar">
+	<button type="button" data-bind="click: insertBefore, attr: {disabled: disable_add}, i18n: {title: 'prop_add'}"><i class="fa fa-plus"></i></button>
+	<button type="button" data-bind="click: remove, attr: {disabled: disable_del}, i18n: {title: 'prop_del'}"><i class="fa fa-close"></i></button>
+	<button type="button" data-bind="click: moveUp, attr: {disabled: disable_up}, i18n: {title: 'prop_up'}"><i class="fa fa-arrow-up"></i></button>
+	<button type="button" data-bind="click: moveDown, attr: {disabled: disable_down}, i18n: {title: 'prop_down'}"><i class="fa fa-arrow-down"></i></button>
+</div>
+<ul data-bind="foreach: filteredView, event: {keyup: keyHandler }" tabindex=999 style="outline: none; 
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;">
+  <li data-bind="css: {active: selected}, click: toggle">
+    <setting-item params="$data"></setting-item>
+  </li>
+</ul>
