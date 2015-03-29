@@ -53,7 +53,12 @@ remove_setting($tab, $setting)
 // @param {string} $tab - lookup property of the tab to search in
 // @param {string} $setting - lookup property of the setting to remove
 ````
-
+````
+get_tab_link($tab=NULL, $linkText='settings')
+// @param {string} [$tab=NULL] - (Optional) Empty, lookup property of  
+// lookup property of a plugin (basename) or 'theme_settings', or a site tab
+// @param {string} [$linkText='settings'] - (Optional) A custom text for the <a> element
+````
 #### Plugin hooks
 [More info](http://webketje.github.io/projects/gs-custom-settings/#hooks)
 ````
