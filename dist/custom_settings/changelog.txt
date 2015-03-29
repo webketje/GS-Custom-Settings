@@ -1,0 +1,47 @@
+25/02/2015 - V. 0.2 public test
+	New:
+		- Fully translatable, no hard-coded values anymore
+		- Complete UI overhaul, including:
+			- tab/setting actions moved to one toolbar to unclutter the UI
+			- opening a tab in edit mode is the same as in manage mode (used to be through icon)
+      - Settings can now be batch (re)moved/added/moved to another tab
+			- settings keyboard functionality (Ctrl, Shift for multiselect & Delete)
+			- Import & export data directly from the UI as backup/ transfer to other site. (Experimental)
+			- Export tab directly to JSON for plugin/theme dev with custom settings. (Experimental)
+			- Enhanced, translatable notification manager
+		- Theme developers can now register their custom settings, i18n-enabled.
+		- Plugin developers can now register their custom settings, i18n-enabled. (Experimental)
+		- Added security token check to AJAX filehandler.
+		- Added PHP API with variable caching for better performance 
+		- Permissions can be restricted per user by adding a <KO_EDIT>false</KO_EDIT> node to the user.xml (Experimental)
+		- Added languages French, Dutch.
+  Changed:
+    - Removed the ability to view all tabs in one (performance)
+    - Plugin folder ko_base deleted, contents moved into one folder
+    - Renamed plugin more appropriately to 'Custom settings' as the focus and intent shifted away from original design.
+    - Added readme.md to ZIP package with some basic instructions
+    - Setting lookups 'tokens' must now be set manually
+    - Removed content filters temporarily
+    - Removed 'fancy' inputs temporarily
+    - Settings in the plugin's PHP functions must now be retrieved with function($tab, $setting) instead of 'tab/setting'
+    - Added or modified ko_site_settings functions:
+        - get_setting($setting,$echo=TRUE) - retrieve setting $setting (if $setting exists)
+        - get_settings($tab, $echo=FALSE) - retrieve all settings within tab $tab (if $tab exists)
+        - set_setting($setting, $value) - set a setting's value (if $setting exists)
+        - return_setting - shorthand for get_setting($setting, $echo=FALSE)
+        - NEED TO ADD TAB FOR THIS => add_setting($setting) - add a new setting (if $setting does not exist)
+  Bugfixes:
+    - Fixed array dereferencing issues. Plugin should now be compatible with PHP 5.2+
+    - Fixed .htaccess for settings data. No longer accessible through browser/ HTTP requests (safer)
+    - Fixed 'switch' input saving empty options array
+    - Fixed moving a tab up or down causing settings' tab field to be changed
+    - Fixed plugin not loading default language in case language file is missing
+    - Clicking labels now automatically moves focus to the relevant inputs
+    - JSON data is now formatted properly when saved, both through Javascript and PHP
+    - Buttons in sidebar now properly disabled when unusable
+  Known Issues: 
+    - Placeholders not showing up in Mozilla FF
+    - IE8 untested
+  Planned features:
+    - ZIP archive autopackaging for settings
+    - Working content filter

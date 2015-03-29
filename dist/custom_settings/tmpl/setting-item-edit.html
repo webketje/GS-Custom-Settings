@@ -1,0 +1,105 @@
+<div class="ko-drawer" data-bind="css: { 'active': selected,
+		'ko-h-135': $data.isOpen ? $data.isOpen.state() : true, 
+		'ko-h-35': $data.isOpen ? !$data.isOpen.state() : false}, 
+		">
+		<!-- visible: $root.data.tabs.activeItem() === 'all' || tab() === $root.data.tabs.activeItem().lookup() -->
+	<div class="ko-1-1 ko-box ko-pad-5 ko-mb-5" style="margin-top: 3px;">
+		<span class="ko-toolbar">
+		
+			<button type="button" data-bind="click: toggle, i18n: { title: 'prop_select_setting'}, attr: { style: selected() ? 'color: #CF3805;' : ''}">
+				<i class="fa fa-location-arrow"></i></button>
+			<button type="button" data-bind="
+				click: isOpen.toggle,
+				i18n: { title: 'prop_hide_show_details'}">
+				<i data-bind="attr: { 'class': 'fa fa-' + isOpen.display(), style: isOpen.state() ? 'color: #CF3805;' : ''}," class="open-setting-details"></i></button>
+			
+		</span>
+		<span class="ko-3-5" style="display: inline-block; width: 66%">
+			<!--@NPPBookmark Input label field -->
+			<span class="ko-1-2" style="display: inline-block;">
+				<label data-bind="
+					i18n: 'label_label', 
+					attr:{'for': names.label}"></label>
+					
+				<input style="width: 140px;" class="ko-3-5" data-bind="
+					textInput: label, 
+					event: {change: $root.notif.lookup_change },
+					attr: {'name': names.label, 'id': names.label,type: 'text'}">
+			</span>
+			<!--@NPPBookmark Input lookup field -->
+			<span class="ko-1-2" style="display: inline-block;">
+				<label data-bind="i18n: 'label_lookup', attr:{'for': names.lookup}"></label>
+				<input style="width: 140px;" class="ko-3-5" data-bind="
+					value: lookup, 
+					event: {change: function() { $root.notif.lookup_change(); lookup(lookup().replace(/\W+/g, '_').replace(/_+/g,'_'));}},
+					attr: {'name': names.lookup, 'id': names.lookup, type: 'text'}">
+			</span>
+		</span>
+		<!--@NPPBookmark Code copy component -->
+		<div class="ko-float-right ko-text-right" style="width: 175px;" data-bind="component: {
+			name: 'code-input', 
+			params: {
+				prefix: '\<\?php get_setting(\'',
+				suffix: '\'); ?>', 
+				data: $parents[1].lookup() + '\',\'' + lookup(), 
+				tooltip: 'code_tip'}}">
+		</div>
+	</div>
+	<div class="ko-1-3 ko-float-left ko-box-padding">
+		<!--@NPPBookmark Input type field -->
+		<div class="ko-1-1 ko-box">
+			<label class="ko-2-5" data-bind="i18n: 'label_type', attr:{'for': names.type}"></label>
+			<select class="ko-3-5" data-bind="
+				options: $root.data.types, 
+				optionsValue: 'value',
+				optionsText: 'label',
+				value: type, 
+				event: {change: changeInputType},
+				attr: {'name': names.type, 'id': names.type}"></select>
+		</div>
+		<!--@NPPBookmark Input access field -->
+		<div class="ko-1-1 ko-box">
+			<label class="ko-2-5" data-bind="i18n: 'label_access', attr:{'for': names.access}"></label>
+			<select class="ko-3-5" data-bind="
+				options: $root.data.accessLevels, 
+				value: access, 
+				optionsValue: 'value',
+				optionsText: 'label',
+				attr: {'name': names.access, 'id': names.access"></select>
+		</div>
+		<!--@NPPBookmark Input value field (hidden, locked) -->
+		<div class="ko-1-1 ko-box" data-bind="visible: type() !== 'textarea' ">
+			<label class="ko-2-5" for="" style="display: inline-block;" data-bind="i18n: 'label_value'"></label>
+			<!-- ko if: isOptionInput -->
+				<select class="ko-3-5" data-bind="options: options, optionsValue: 'index', optionsText: 'val', value: value"></select><!-- /ko -->
+			<!-- ko if: type() === 'text' -->
+				<input class="ko-3-5" type="text" data-bind="value: value"><!-- /ko -->
+			<!-- ko if: /checkbox|switch/.test(type()) -->
+				<span class="ko-1-2"> <input type="checkbox" data-bind="checked: value"></span><!-- /ko -->
+		</div>
+	</div>
+	<!--@NPPBookmark Input option field-->
+	<!-- ko if: isOptionInput -->
+  <div class="ko-float-left ko-box-padding ko-1-3"  style=" height: 85px;">
+		<label data-bind="i18n: 'label_options', attr:{'for': names.options}"></label>
+		<div data-bind="component: {name: 'array-to-text', 
+			params: {
+				data: options, 
+				attr: {'class':'ko-box', 'id': names.options, 'name': names.options, 'rows': 4}, 
+				i18n: {placeholder: 'placeholder_options'}}}"></div>
+	</div>
+	<!-- /ko -->
+	<!-- ko if: type() === 'textarea' -->
+  <div class="ko-float-left ko-box-padding ko-1-3"  style=" height: 85px;">
+		<label class="ko-2-5" for="" style="display: inline-block;" data-bind="i18n: 'label_value'"></label>
+			<textarea class="ko-1-2" data-bind="value: value" rows="4"></textarea>
+	</div>
+	<!-- /ko -->
+	<!--@NPPBookmark Input descr field -->
+	<div class="ko-float-right ko-box-padding ko-1-3" style="height: 85px;">
+		<label data-bind="i18n: 'label_descr', attr:{'for': names.descr}"></label>
+		<!-- TODO: Figure out how to make placeholder work in Mozilla FF -->
+		<textarea data-bind="value: descr, i18n: {placeholder: 'placeholder_descr'},
+			attr: {'name': names.descr, 'id': names.descr}" rows="4" class="ko-box"></textarea>
+	</div>
+</div>

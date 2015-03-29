@@ -1,0 +1,25 @@
+<!-- ko if: mode.state -->
+	<li><h3 data-bind="i18n: 'label_edit_tabs'" style="margin-left: 12px;"></h3></li>
+	<li>
+		<span class="ko-toolbar ko-float-right" data-bind="with: $root.data" style="margin-right: 0; position: relative; top: -40px;">
+			<button data-bind="attr: {disabled: disable_add},  i18n: {'title': 'tab_add'},  click: insertBefore"><i class="fa fa-plus"></i></button>
+			<button data-bind="attr: {disabled: disable_del},  i18n: {'title': 'tab_del'},  click: remove"><i class="fa fa-close"></i></button>
+			<button data-bind="attr: {disabled: disable_up},   i18n: {'title': 'tab_up'},   click: moveUp"><i class="fa fa-arrow-up"></i></button>
+			<button data-bind="attr: {disabled: disable_down}, i18n: {'title': 'tab_down'}, click: moveDown"><i class="fa fa-arrow-down"></i></button>
+		</span>
+	</li>
+	<!-- ko foreach: data.filter -->
+		<li data-bind="css: {current: $root.data.activeItem() === $index()}">
+			<a data-bind="attr: { href: '#' + lookup() },	click: $root.data.setActive">
+				<input class="ko-side-input" type="text" data-bind="value: label, event: { change: $root.notif.tab_conflict}">
+			</a>
+		</li>
+	<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: !mode.state() -->
+	<!-- ko foreach: data.items -->
+		<li data-bind="css: {current: $root.data.activeItem() === $index()}">
+			<a data-bind="text: label, attr: { href: '#' + lookup() },click: $root.data.setActive"></a>
+		</li>
+	<!-- /ko -->
+<!-- /ko -->
