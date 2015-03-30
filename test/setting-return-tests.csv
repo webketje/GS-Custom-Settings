@@ -19,5 +19,5 @@ function,input,expect,status
 "return_setting($tab,$setting,'options')","radio","PHP array",""
 "return_setting($tab,$setting,'options')","select","PHP array",""
 "return_setting($tab,$setting,'options')","fancy radio","PHP array",""
-"get_tab_link($tab, $linkText)", "...", "<a href="http://mysite.com/admin/load.php?id=custom_settings#$tab>$linkText</a>",""
+"get_tab_link($tab, $linkText)", "...", "<a href=http://mysite.com/admin/load.php?id=custom_settings#$tab>$linkText</a>",""
 	
