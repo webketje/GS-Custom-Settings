@@ -1,6 +1,6 @@
 [size=large]Description[/size]
 
-GS Custom Settings is a plugin for <a href="http://get-simple.info/">GetSimple CMS </a>which lets webmasters/ site managers, theme and plugin developers implement and use their own custom settings for output, configuration, and cross-plugin/-theme communication. The plugin offers 8 different types of input to choose from, 3 access levels, per-user editing permission, and an easy UI to create, import and export the settings. GS Custom Settings is built on Knockout JS and uses JSON for data storage. 
+GS Custom Settings is a plugin for [url=http://get-simple.info/]GetSimple CMS[/url] which lets webmasters/ site managers, theme and plugin developers implement and use their own custom settings for output, configuration, and cross-plugin/-theme communication. The plugin offers 8 different types of input to choose from, 3 access levels, per-user editing permission, and an easy UI to create, import and export the settings. GS Custom Settings is built on Knockout JS and uses JSON for data storage. 
 
 This plugin was previously called KO Site Settings, but as the focus shifted away from the original intent, 
 I renamed it custom settings, as these are now available for website, theme, and plugins.
@@ -53,9 +53,11 @@ Manage Mode:
 Edit Mode:
 [img]http://i.imgur.com/NuQ2ezN.png[/img]
 
+[size=large]Tutorials[/size]
+[url=http://webketje.github.io/cms/2015/03/30/building-a-theme-with-gs-custom-settings/]Building a theme with custom settings[/url]
 
 [size=large]Documentation[/size]
-To read the full guide, go to [the plugin's page](http://webketje.github.io/projects/gs-custom-settings).
+To read the full guide, go to [url=http://webketje.github.io/projects/gs-custom-settings]the plugin's page[/url].
 
 
 [list]
@@ -89,7 +91,7 @@ To read the full guide, go to [the plugin's page](http://webketje.github.io/proj
 		[/list]
 [/list]
 
-[size=large]Known Issues[/size]update doc with links from mybb
+[size=large]Known Issues[/size]
 [code]
  - Settings import only works with IE10 &amp; up, provide fallback
  - When repeatedly batch editing settings, selection might bug or actions might not be executed on entire selection

@@ -1,0 +1,12 @@
+function,details,expect,status
+"SAVING SETTINGS","","",""
+"IMPORTING SETTINGS","","",""
+"Import (any) settings","Browser is IE9 or older","Should display error message: invalidBrowser","Untested"
+"Import (any) settings","File with other extension","Should display error message: invalidExt","Untested"
+"Import (any) settings","JSON file with errors","Should display error message: invalidJSON","Untested"
+"Import theme settings (active)","theme_data_<name>.json","Should overwrite current theme settings and add new ones","Untested"
+"Import theme settings (inactive)","theme_data_<name>.json","Should display error message 'theme_missing'","Untested"
+"Import plugin settings (active)","plugin_data_<name>.json","Should overwrite current plugin settings and add new ones","Untested"
+"Import plugin settings (inactive)","plugin_data_<name>.json","Should display error message 'plugin_missing'","Untested"
+"Import single tab settings","<tab>_data.json","Should display error message 'plugin_missing'","Untested"
+"EXPORTING SETTINGS","","",""
