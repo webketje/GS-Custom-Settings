@@ -88,6 +88,41 @@ ko_arrayToText.viewModel = function (params) {
  *  @param {string} params|pre/suffix - Pre and suffix to add to the displayed string
  */
  
+ ko_imageBrowser = {};
+ ko_imageBrowser.name = 'image-browser';
+ ko_imageBrowser.template = '<div id="image-browser" data-bind="css: {hidden: !imageBrowserLoaded() || !imageBrowserActive()}" class="hidden">' + 
+		'<ul data-bind="template: {name: \'image-item-tmpl\', foreach: imageUploads}"></ul>' + 
+		'<div id="image-browser-cmd">' + 
+			'<button type="button" class="button" data-bind="text: \'set\', click: function() { imageBrowserOrigin.value(\'hahah\'); imageBrowserActive(!imageBrowserActive());}"></button>' + 
+			'<button type="button" class="button" data-bind="text: \'cancel\', click: function() {imageBrowserActive(!imageBrowserActive());}"></button>' + 
+		'</div>' +
+	'</div>';
+	
+ ko_imageBrowser.viewModel = function(params) {
+    var self = this;
+    this.options = { attachTo: params.attachTo };
+    this.loaded = ko.observable(false);
+    this.active = ko.observable(false);
+    this.data = ko.observableArray([]);
+    this.actions = {
+      close: function() { self.active(false); },
+      select: function(data, e) { return; },
+      attachTo: function() { 
+        ko.utils.registerEventHandler(params.attachTo, 'click', function(e, element) {
+          self.active(true);
+        });
+      }
+    };
+ };
+
+/** COMPONENT VM : Lookup string for quick copying to clipboard, with pre-and suffix
+ *  @param {object} params
+ *  @param {function} params|data - (observable) An item lookup/ combination (eg tab and setting)
+ *  @param {string} params|tooltip - i18n lookup string
+ *  @param {string} params|css - Classes to add to the input
+ *  @param {string} params|pre/suffix - Pre and suffix to add to the displayed string
+ */
+ 
 ko_codeInputField = {};
 ko_codeInputField.name = 'code-input';
 ko_codeInputField.template = '<input type="text" style="width: 95%;" data-bind="i18n: {title: tooltip}, ' + 
@@ -109,6 +144,7 @@ ko_codeInputField.viewModel = function(params) {
 // register components
 ko.components.register(ko_arrayToText.name,     { viewModel: ko_arrayToText.viewModel,    template: ko_arrayToText.template});
 ko.components.register(ko_codeInputField.name,  { viewModel: ko_codeInputField.viewModel, template: ko_codeInputField.template});
+ko.components.register(ko_imageBrowser.name,    { viewModel: ko_imageBrowser.viewModel,   template: ko_imageBrowser.template});
 
 
 // build a custom Knockout handler to bind translated strings to the UI.
@@ -444,4 +480,4 @@ ko.observableArray.fn.where = function(obj, live) {
 		return result;
 	}
 }
-var isDebug = true;
+var isDebug = false;

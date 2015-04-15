@@ -1,8 +1,8 @@
 { "title": "Langue française pour le plugin GS Custom Settings",
   "meta": {
-    "Date":  "26 Mars 2015",
+    "Date":  "15 avril 2015",
     "Revision": "1",
-    "Version":  "GetSimple 3.2 - 3.5",
+    "Version":  "0.3",
     "traductors":  "Kevin Van Lierde",
     "package": "GetSimple",
     "subpackage": "Language"},
@@ -53,14 +53,17 @@
     "input_checkbox": "checkbox",
     "input_radio": "radio",
     "input_select": "select",
+    "input_image": "image",
     "input_switch": "bouton à bascule (icône)",
     "input_fancy_checkbox": "checkbox (icône)",
     "input_fancy_radio": "radio (icône)",
+    "input_color": "couleur",
+    "input_section_title": "titre de section",
     "placeholder_options": "Une option par ligne",
     "placeholder_descr": "Une description pour le paramètre",
-    "placeholder_value": "Valeur du paramètre",
     "placeholder_lookup": "nom_du_parametre",
     "placeholder_label": "Nom du paramètre",
+    "placeholder_search": "Recherche..",
     "access_normal": "Normal",
     "access_locked": "Verrouillé",
     "access_hidden": "Invisible",
@@ -76,8 +79,6 @@
     "error_save": "Erreur: Sauvegarde échouée.",
     "info_clipboardcopy": "Paramètre copié au presse-papiers.",
     "warn_change_label": "Changing the setting's tab or label requires you to update PHP calls referencing it.",
-    "warn_prop_conflict": "Two or more settings have the same label, modify them to avoid name resolution conflicts.",
-    "warn_tab_conflict": "Two or more tabs have the same label, modify them to avoid name resolution conflicts.",
     "warn_unsaved": "Vous avez des modifications non-sauvegardées, êtes-vous sûr de vouloir quitter la page?"
   }
 }

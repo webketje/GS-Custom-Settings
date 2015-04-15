@@ -291,7 +291,7 @@ singleSelectList.prototype.setActive = function(data, e) {
   ko.contextFor(target).$parent.data.activeItem(ko.contextFor(target).$index());
   if (target.nodeName === 'LI')
     target.getElementsByTagName('input')[0].focus();
-  else if (target.nodeName === 'A')
+  else if (target.nodeName === 'A' && target.parentNode.getElementsByTagName('input')[0])
     target.parentNode.getElementsByTagName('input')[0].focus();
   return true;
 }

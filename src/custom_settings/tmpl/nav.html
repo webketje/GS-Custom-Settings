@@ -1,0 +1,22 @@
+<div class="edit-nav">
+	<!-- ko if: editPermission -->
+	<a href="#mode-switch" data-bind="i18n: 'mode_' + mode.display(), css: {'hidden': !editPermission }, click: function() { mode.toggle(); data.filterToggle(); }"></a>
+	<!-- /ko -->
+	<a href="#data-export" data-bind="i18n: {'title': 'cmd_export'}" class="invisible-input-container">
+	<span data-bind="i18n: 'cmd_export'"></span>
+	<select id="export-tab" data-bind="onewaySelect: {
+				options: tabExportList, 
+				optionsText: 'label', 
+				optionsValue: 'lookup', 
+				value: 'none',
+				action: fn.exportData}"></select></a>
+	<a href="#data-import" class="invisible-input-container" data-bind="click: function() { $element.getElementsByTagName('input')[0].click(); return true;}">
+		<span data-bind="i18n: 'cmd_import'"></span>
+		<input type="file" class="invisible-input" data-bind="i18n: {'title': 'cmd_import'}, event: {change: fn.importData}">
+	</a>
+</div>
+<h3 data-bind="text: data.activeItem() === false || data.items().length === 0 ? i18n['title'] : data.items()[data.activeItem()].label()"></h3>
+<div id="setting-search">
+	<i class="fa fa-search fa-flip-horizontal" style=" color: gray; right: 5px; position: relative;"></i>
+	<input type="text" style="max-width: 80%;" data-bind="textInput: search, attr: {placeholder: 'Search..'}">
+</div>

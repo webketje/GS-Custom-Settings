@@ -1,21 +1,44 @@
-﻿30/03/2015 - V. 0.2
+15/04/2015 - V. 0.3 (Critical fix)
+
+New: 
+  - Multi User plugin integration (v1.8.2 onwards)
+  - Added image & color input fields
+  - Added section title fields
+  - Theme settings can now use the shorter tab name 'theme' instead of 'theme_settings', eg get_setting('theme','setting')
+  - Links in descriptions become automatically clickable in 'Manage' mode
+  - Added per-tab search filter for settings (lookup/ label)
+  - Added language German & Spanish (fourth & fifth languages, so might need revision)
+Changed:
+  - Removed 'custom-settings-init' hook (unreliable)
+  - Except for import/ export/ multiselect, now fully compatible with IE8 (previously only Manage mode)
+Bugfixes:
+  - 'KO site settings' replaced as title with 'GS Custom Settings' (in UI)
+  - Eliminated minor JS 'input focus' error
+  - Import & Export buttons now also available to users who cannot access Edit mode (backup purposes)
+  - Fixed (% setting: tab/setting %) (now same as get_setting instead of return_setting)
+  - Fixed text settings not saving when value hasn't been set
+  - Fixed security token being sent with data (no longer)
+  - Fixed return_setting returning entire setting when asked for absent property (now returns NULL)
+  - Fixed loose checking bug returning entire setting for option inputs instead of value only when value is 0
+
+30/03/2015 - V. 0.2 (Beta)
 
 New:
   - Fully translatable, (almost) no hard-coded values anymore
-  - Future Github repo at http://webketje.github.io/gs-custom-settings (issue tracking)
+  - Github repo at http://webketje.github.io/gs-custom-settings (issue tracking)
   - Complete UI overhaul, including:
     - tab/setting actions moved to one toolbar to unclutter the UI
     - opening a tab in edit mode is the same as in manage mode (used to be through icon)
     - Settings can now be batch selected/(re)moved/added
-    - settings keyboard functionality (Ctrl, Shift for multiselect & Delete)
-  - Import & export data directly from the UI as backup/ transfer to other site.
+    - settings keyboard functionality (Ctrl, Shift for multiselect &amp; Delete)
+  - Import &amp; export data directly from the UI as backup/ transfer to other site.
   - Export tab directly to JSON for plugin/theme dev with custom settings.
   - Enhanced, translatable notification manager
   - Theme developers can now register their custom settings, i18n-enabled.
   - Plugin developers can now register their custom settings, i18n-enabled.
   - Added security token check to AJAX filehandler.
   - Added PHP API with variable caching for better performance 
-  - Permissions can be restricted per user by adding a <KO_EDIT>false</KO_EDIT> node to the user.xml
+  - Permissions can be restricted per user by adding a <ko_edit>false</ko_edit> node to the user.xml
   - Added languages French, Dutch.
 Changed:
   - Removed the ability to view all tabs in one (performance)
@@ -37,4 +60,3 @@ Bugfixes:
 18/02/2014 - V. 0.1 (Alpha)
 
 Initial launch
-

@@ -33,4 +33,32 @@
 			return true;
 		return false;
 	}
+	/** Query data/uploads folder for image files
+	 *  
+	 */
+	public static function getImageUploads($dir=GSDATAUPLOADPATH) {
+		global $SITEURL;
+		$files = array_diff(scandir($dir), array('.', '..'));
+		$imgRegex = '#jpeg|jpg|gif|png|webp|bmp#';
+		$path = $dir . '/';
+		$result = array();
+		$match = '';
+	
+		foreach ($files as $file) {
+			$current = $path . $file;
+			if (is_dir($current)) {		  
+			  array_push($result, array('folder'=> $file, 'images' => self::getImageUploads($current)));
+			} elseif (is_file($current) && preg_match($imgRegex, strtolower(substr($current, -4)), $match)) {
+				$imgProps = getimagesize($current);
+				$imgReturn = array(
+					'name' => $file,
+					'path' => str_replace(GSDATAUPLOADPATH, $SITEURL . 'data/uploads', $current),
+					'size' => $imgProps[0] . ' x ' . $imgProps[1],
+					'ext' => $match[0]
+				);
+			  array_push($result, $imgReturn);
+			}
+		}
+		return $result;
+	}
 }

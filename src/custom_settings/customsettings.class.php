@@ -233,6 +233,17 @@ if (!class_exists('customSettings')) {
 			}
 		}
 		
+		/** Theme CSS Filter (% setting: tab/setting %) text from Pages content 
+		 *  Not used yet
+		 */
+		public static function styleSheetFilter($data) {
+			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
+			$path = GSTHEMESPATH . $TEMPLATE . '/dynamic.css';
+			$content = file_get_contents($path);
+			$regex = '#\(%\s*(\w*[\/]*\w*)\s*%\)#';
+			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $content);
+			return $new_content;
+		}
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
 		//                          Settings PHP API                            //
@@ -243,20 +254,29 @@ if (!class_exists('customSettings')) {
 		 *  @param {string} $tab
 		 *  @param {string} $setting
 		 */
-		public static function getSetting($tab, $setting, $debug=FALSE) 
+		public static function getSetting($tab, $setting, $echo=TRUE) 
 		{
 			global $custom_settings, $custom_settings_dictionary;
+			$tab = $tab === 'theme' ? 'theme_settings' : $tab;
 			if (isset($custom_settings['data'][$tab]) && isset($custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]])) {
 				$settingInArray = $custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]];
 				$value = $settingInArray['value']; 
+				$returnValue = '';
 				if ($value === TRUE)	
-					echo 'on';
+					$returnValue = 'on';
 				elseif ($value === FALSE)	
-					echo 'off';
+					$returnValue = 'off';
 				elseif (isset($settingInArray['options']) && is_array($settingInArray['options']) && count($settingInArray['options'])) 
-					echo $settingInArray['options'][$value];
+					$returnValue = $settingInArray['options'][$value];
+				elseif ($settingInArray['type'] === 'image')
+					$returnValue = '<img src="' . $value . '" alt="' . $settingInArray['label'] . '">';
 				else 
-					echo $value;
+					$returnValue = $value;
+				
+				if ($echo === TRUE) 
+					echo $returnValue;
+				else
+					return $returnValue;
 			}
 		}
 		
@@ -268,14 +288,17 @@ if (!class_exists('customSettings')) {
 		public static function returnSetting($tab, $setting, $prop=NULL) 
 		{
 			global $custom_settings, $custom_settings_dictionary;
+			$tab = $tab === 'theme' ? 'theme_settings' : $tab;
 			if (isset($custom_settings_dictionary[$tab][$setting]))
 				$settingInArray = $custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]];
 					
 			if (isset($custom_settings['data'][$tab]) && isset($settingInArray)) {
-				if (isset($prop) && $settingInArray[$prop]) 
-					return $settingInArray[$prop];
-				else
-					return $settingInArray;
+				if (isset($prop)) {
+					if (isset($settingInArray[$prop])) 
+						return $settingInArray[$prop];
+					return;
+				}
+				return $settingInArray;
 			}
 		}		
 		
@@ -358,13 +381,34 @@ if (!class_exists('customSettings')) {
 			return $userdata->KO_EDIT;
 		}
 		
+		/** Sets per-user editing permission with Multi-User plugin (v1.8.2 onwards)
+		 *  Hook: common (requires another hook because MU overwrites the settings-user hook)
+		 */
+		public static function mu_setUserPermission() {
+			global $live_plugins;
+			if (isset($live_plugins['user-managment.php']) && $live_plugins['user-managment.php'] !== 'false') {
+				// set Multi User setting
+				$pluginLang = self::getLangFile();
+				add_mu_permission('KO_EDIT', $pluginLang['title']);		
+			}
+		}
+		
+		/** Gets per-user editing permission with Multi-User plugin (v1.8.2 onwards)
+		 *  Hook: common (requires another hook because MU overwrites the settings-user hook)
+		 */
+		public static function mu_getUserPermission() {
+			global $USR;
+			return check_user_permission($USR, 'KO_EDIT') === false ? 'false' : 'true';
+		}
+		
 		/** Used in contentFilter preg_replace_callback function
 		 *  No need to require filehandler.class.php, called in parent execution context
 		 *  @param {string} $matches - Match as returned by preg_replace_callback
 		 */
 		private static function contentReplaceCallback($matches) {
 			$jsonPath = fileUtils::splitPathArray($matches[1]);
-			$result = self::returnSetting($jsonPath[0], $jsonPath[1], 'value');
+			$jsonPath[0] = $jsonPath[0] === 'theme' ? 'theme_settings' : $jsonPath[0];
+			$result = self::getSetting($jsonPath[0], $jsonPath[1], false);
 			return $result;
 		}
 		
@@ -375,6 +419,7 @@ if (!class_exists('customSettings')) {
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
 			$regex = '#\(%\s*setting[:=]\s*(\w*[\/]*\w*)\s*%\)#';
 			$new_content = html_entity_decode($content);
+			// is below line required?
 			preg_match_all($regex, $new_content, $matches, PREG_OFFSET_CAPTURE);
 			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $new_content);
 			return $new_content;
@@ -387,7 +432,7 @@ if (!class_exists('customSettings')) {
 		{
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
 			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
-			global $LANG, $TEMPLATE, $SITEURL;
+			global $LANG, $TEMPLATE, $SITEURL, $mu_active;
 			$tmpl = GSPLUGINPATH . 'custom_settings/tmpl/';
 		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/nav.html');
 		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/main.html');
@@ -397,7 +442,7 @@ if (!class_exists('customSettings')) {
 		  <input type="hidden" id="path-lang"  value="<?php echo GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'; ?>">
 		  <input type="hidden" id="path-handler"    value="<?php echo $SITEURL; ?>plugins/custom_settings/customsettings.handler.php">
 		  <input type="hidden" id="site-template"    value="<?php echo strtolower($TEMPLATE); ?>">
-		  <input type="hidden" id="edit-permission"    value="<?php echo self::getUserPermission(); ?>">
+		  <input type="hidden" id="edit-permission"    value="<?php echo $mu_active ? self::mu_getUserPermission() : self::getUserPermission(); ?>">
 		  <input type="hidden" id="path-data"  value="<?php echo GSDATAOTHERPATH; ?>custom_settings/data.json">
 		  <input type="hidden" id="request-token" value="<?php echo fileUtils::requestToken('kosstt'); ?>">
 		  <script type="text/template" id="setting-list-tmpl"><?php echo file_get_contents($tmpl . 'setting-list.html'); ?></script>

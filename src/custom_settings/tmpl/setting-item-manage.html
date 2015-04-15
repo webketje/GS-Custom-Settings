@@ -1,6 +1,7 @@
 <!-- ko if: !isHidden() -->
 	<div class="ko-list-item" data-bind="css: { 'active': false }">
 		<div class="ko-3-5 ko-float-left">
+			<!-- ko if: type() !== 'section-title' -->
 			<label data-bind="text: label, attr: {'for': lookup() + '-output'}" class="ko-mr-10"></label>
 			<span class="ko-1-3" style="display: inline-block;" data-bind="component: {
 				name: 'code-input', 
@@ -10,10 +11,15 @@
 					data: $parents[1].lookup() + '/' + lookup(), 
 					tooltip: 'code_tip'}}">
 			</span>
-			<p data-bind="text: descr" class="ko-setting-descr ko-1-1"></p>
+			<!-- /ko -->
+			<!-- ko if: type() === 'section-title' -->
+			<h3 data-bind="text: label().length ? label().slice(0,1).toUpperCase() + label().slice(1) : ''" style="margin-top: 10px; margin-bottom: 10px; font-style: normal;"></h3>
+			<!-- /ko -->
+			<p data-bind="html: descrHTML" class="ko-setting-descr ko-1-1"></p>
 		</div>
-		<!-- TODO: Put template binding into computed property -->
+		<!-- ko if: type() !== 'section-title' -->
 		<div class="ko-float-right ko-text-right ko-2-5" data-bind="template: {name: (type() + '-input-tmpl').replace(/\s+/g,'-'), data: $data}"></div>
+		<!-- /ko -->
 		<div class="ko-clearfix"></div>
 	</div>
 <!-- /ko -->

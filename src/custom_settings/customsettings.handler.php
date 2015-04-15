@@ -10,12 +10,14 @@
 		$token = $_REQUEST['requestToken'];
 		$id = $_REQUEST['id'];
 		$getToken = fileUtils::requestToken('kosstt');
-		echo $getToken;
 		if ($token === $getToken) {
 			if (isset($_REQUEST['action']) && isset($_REQUEST['path'])) {
 				$path = urldecode($_REQUEST['path']);
 				$data = isset($_REQUEST['data']) ? $_REQUEST['data'] : NULL;
 				switch($_REQUEST['action']) {
+					case 'loadImageBrowser':
+						echo json_encode(GSutils::getImageUploads());
+						break;
 					case 'getI18NFile':
 						echo json_encode($i18n);
 						break;

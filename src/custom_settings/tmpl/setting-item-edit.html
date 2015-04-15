@@ -1,18 +1,17 @@
 <div class="ko-drawer" data-bind="css: { 'active': selected,
-		'ko-h-135': $data.isOpen ? $data.isOpen.state() : true, 
-		'ko-h-35': $data.isOpen ? !$data.isOpen.state() : false}, 
+		'ko-h-35': !$data.isOpen.state(),
+		'ko-h-135': $data.isOpen.state() && type() !== 'section-title', 
+		'ko-h-75': $data.isOpen.state() && type() === 'section-title'} 
 		">
-		<!-- visible: $root.data.tabs.activeItem() === 'all' || tab() === $root.data.tabs.activeItem().lookup() -->
 	<div class="ko-1-1 ko-box ko-pad-5 ko-mb-5" style="margin-top: 3px;">
 		<div class="ko-toolbar">
 		
-			<button type="button" data-bind="click: toggleSelect, i18n: { title: 'prop_select'}, attr: { style: selected() ? 'color: #CF3805;' : ''}">
+			<button type="button" data-bind="click: toggleSelect, i18n: { title: 'prop_select'}, style: { color: selected() ? '#CF3805' : ''}">
 				<i class="fa fa-location-arrow"></i></button>
 			<button type="button" data-bind="
 				click: isOpen.toggle,
 				i18n: { title: 'prop_hide_show_details'}">
-				<i data-bind="attr: { 'class': 'fa fa-' + isOpen.display(), style: isOpen.state() ? 'color: #CF3805;' : ''}," class="open-setting-details"></i></button>
-			
+				<i data-bind="attr: { 'class': 'fa fa-' + isOpen.display()}, style: { color: isOpen.state() ? '#CF3805' : ''}," class="open-setting-details"></i></button>
 		</div>
 		<span class="ko-3-5" style="display: inline-block; width: 66%">
 			<!--@NPPBookmark Input label field -->
@@ -57,6 +56,7 @@
 				event: {change: changeInputType},
 				attr: {'name': names.type, 'id': names.type}"></select>
 		</div>
+	<!-- ko if: type() !== 'section-title' -->
 		<!--@NPPBookmark Input access field -->
 		<div class="ko-1-1 ko-box">
 			<label class="ko-2-5" data-bind="i18n: 'label_access', attr:{'for': names.access}"></label>
@@ -72,11 +72,12 @@
 			<label class="ko-2-5" for="" style="display: inline-block;" data-bind="i18n: 'label_value'"></label>
 			<!-- ko if: isOptionInput -->
 				<select class="ko-3-5" data-bind="options: options, optionsValue: 'index', optionsText: 'val', value: value"></select><!-- /ko -->
-			<!-- ko if: type() === 'text' -->
+			<!-- ko if: /text\b|image|color/.test(type()) -->
 				<input class="ko-3-5" type="text" data-bind="value: value"><!-- /ko -->
 			<!-- ko if: /checkbox|switch/.test(type()) -->
 				<span class="ko-1-2"> <input type="checkbox" data-bind="checked: value"></span><!-- /ko -->
 		</div>
+	<!-- /ko -->
 	</div>
 	<!--@NPPBookmark Input option field-->
 	<!-- ko if: isOptionInput -->
@@ -95,6 +96,7 @@
 			<textarea class="ko-1-2" data-bind="value: value" rows="4"></textarea>
 	</div>
 	<!-- /ko -->
+	<!-- ko if: type() !== 'section-title' -->
 	<!--@NPPBookmark Input descr field -->
 	<div class="ko-float-right ko-box-padding ko-1-3" style="height: 85px;">
 		<label data-bind="i18n: 'label_descr', attr:{'for': names.descr}"></label>
@@ -102,4 +104,5 @@
 		<textarea data-bind="value: descr, i18n: {placeholder: 'placeholder_descr'},
 			attr: {'name': names.descr, 'id': names.descr}" rows="4"></textarea>
 	</div>
+	<!-- /ko -->
 </div>

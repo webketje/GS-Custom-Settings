@@ -1,8 +1,8 @@
 { "title": "English Language for GS Custom Settings plugin",
   "meta": {
-    "Date":  "26 Marsh 2015",
+    "Date":  "15 April 2015",
     "Revision": "1",
-    "Version":  "GetSimple 3.2 - 3.5",
+    "Version":  "0.3",
     "traductors":  "Kevin Van Lierde",
     "package": "GetSimple",
     "subpackage": "Language"},
@@ -53,14 +53,17 @@
     "input_checkbox": "checkbox",
     "input_radio": "radio",
     "input_select": "select",
+    "input_image": "image",
     "input_switch": "switch (icon)",
     "input_fancy_checkbox": "checkbox (icon)",
     "input_fancy_radio": "radio (icon)",
+    "input_color": "color",
+    "input_section_title": "section title",
     "placeholder_options": "One option per line",
     "placeholder_descr": "A description for the setting",
-    "placeholder_value": "Set value for hidden/locked setting",
     "placeholder_lookup": "setting_name",
     "placeholder_label": "Setting name",
+    "placeholder_search": "Search..",
     "access_normal": "Normal",
     "access_locked": "Locked",
     "access_hidden": "Hidden",
@@ -76,8 +79,6 @@
     "error_save": "Error: Data could not be saved.",
     "info_clipboardcopy": "Setting copied to clipboard",
     "warn_change_label": "Changing the setting's tab or label requires you to update PHP calls referencing it.",
-    "warn_prop_conflict": "Two or more settings have the same label, modify them to avoid name resolution conflicts.",
-    "warn_tab_conflict": "Two or more tabs have the same label, modify them to avoid name resolution conflicts.",
     "warn_unsaved": "You have unsaved changes. Are you sure you want to leave this page?"
   }
 }

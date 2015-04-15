@@ -20,19 +20,19 @@
  *    - Plugin settings: working, but does not use ko.valueHasMutated() [must be updated if possible to edit]
  */
 function ViewModel(data) {
-	var self = this;
+	var self = this, 
+			initialData = '';
 	this.notify = new Notifier();
 	this.i18n = data.i18n;
 	this.settings = false;
 	this.mode = new Switch(['edit','manage']);
 	this.settingTemplate = ko.computed(function() { return 'setting-item-' + self.mode.template(); });
-	this.editPermission = $('#edit-permission').val() === 'FALSE' ? false : true;
+	this.editPermission = $('#edit-permission').val().toUpperCase() === 'FALSE' ? false : true;
 	this.devExportOpts = [
 		{label: ' ', lookup: 'none'},
 		{label: this.i18n['label_theme'], lookup: 'theme'},
 		{label: this.i18n['label_plugin'], lookup: 'plugin'}
 	];
-	this.FEEDBACK = ko.observable(true);
 	this.notif = {
 		jsonImport: { 
 			invalidJson:    ['error_jsonimport_invalidjson',   'error'],
@@ -53,12 +53,7 @@ function ViewModel(data) {
 			settingTabSwitch: ['This action will move all selected settings to another tab. Be sure to avoid naming conflicts.', 'notify', {ok: ''}],
 			saveSucceeded:    ['SETTINGS_UPDATED', 'updated'],
 			saveError:        ['error_save', 'error']
-		},
-		lookup_change:  function(data) {/*  if (vm.FEEDBACK()) vm.notify('warn_change_label','notify'); */ },
-		type_change:    function(data) { /* if (vm.FEEDBACK() && data.hasValue()) vm.notify('warn_change_type','notify'); */ },
-		tab_conflict:   function(data) { /* if (vm.FEEDBACK() && vm.data.tabs.conflict()) vm.notify('warn_tab_conflict','error'); */ },
-		prop_conflict:  function(data) { /* if (vm.FEEDBACK() && vm.data.settings.conflict()) vm.notify('warn_prop_conflict','error'); */ },
-		tab_remove: function(data,e) { }
+		}
 	};
 	// shorthand for notifier
 	function notify(arg1, arg2) {
@@ -75,11 +70,14 @@ function ViewModel(data) {
 	this.fn = {};
 	this.fn.map = function(data) {
 		var dataArray = [], obj;
+		if (!data.hasOwnProperty('length')) {
 		for (var item in data) {
 			var obj = data[item];
-			obj.tab.label = obj.tab.theme ? self.i18n['label_themesettings'] : obj.tab.label;
+			obj.tab.label = obj.tab && obj.tab.theme ? self.i18n['label_themesettings'] : obj.tab.label;
 			dataArray.push(obj);
 		}
+		}
+		initialData = dataArray;
 		var result = new singleSelectList({
 			data: dataArray,
 			model: Tab,
@@ -94,10 +92,12 @@ function ViewModel(data) {
 					{value: 'checkbox',       label: self.i18n['input_checkbox']},
 					{value: 'radio',          label: self.i18n['input_radio']},
 					{value: 'select',         label: self.i18n['input_select']},
+					{value: 'image',          label: self.i18n['input_image']},
 					{value: 'fancy-checkbox', label: self.i18n['input_fancy_checkbox']},
 					{value: 'fancy-radio',    label: self.i18n['input_fancy_radio']},
 					{value: 'switch',         label: self.i18n['input_switch']},
-				//	{value: 'section-title',  label: 'Section Title'}
+					{value: 'color',          label: self.i18n['input_color']},
+					{value: 'section-title',  label: 'Section Title'}
 				], 
 				accessLevels: [
 					{value: 'normal',         label: self.i18n['access_normal']},
@@ -118,7 +118,12 @@ function ViewModel(data) {
 			notify('duplicate','settingLookups');
 			return;
 		}
-			
+	/* 	var temp = self.fn.unmapTabs(self.data.items());
+		temp = ko.utils.arrayMap(temp, function(item) {
+			return {tab: {lookup: item.lookup,  label: item.label}, settings: item.settings};
+		}); 
+		initialData = temp;
+		console.log(initialData);*/
 		setJSONData(paths.data, 'saveData', data, function(data, status, error) {
 			if (data === null) 
 				notify('actions','saveError');
@@ -149,7 +154,7 @@ function ViewModel(data) {
 		var ignore = {
 			// id & phpFetch included as no longer used, but still in v.0.1
 			'all': ['isHidden','isLocked','isOpen','hasValue','displayInManageMode','lookupOutput', 'names', 'cachedType',
-							'isOptionInput','faIcon','changeInputType','toggle','parentList','display','icon', 'selected'],
+							'isOptionInput','faIcon','changeInputType','toggle','parentList','display','icon', 'selected', 'descrHTML'],
 			'text': ['options'],
 			'textarea': ['options'],
 			'checkbox': ['options'],
@@ -157,7 +162,9 @@ function ViewModel(data) {
 			'switch': ['options'],
 			'radio': [],
 			'select': [],
-			'fancy checkbox': ['options']
+			'image': ['options'],
+			'section-title': ['options','value','access','descr'],
+			'fancy-checkbox': ['options']
 		};
 		
 		function getCleanSetting(setting, isPluginSetting) {
@@ -167,10 +174,10 @@ function ViewModel(data) {
 			for (var prop in setting) {
 				unwrappedProp = ko.utils.unwrapObservable(setting[prop]);
 				if (!inArray(prop, ignoredItems)) {
-					if ((setting.hasValue() && typeof unwrappedProp !== 'function')) {
+					if ((setting.hasValue() && typeof unwrappedProp !== 'function') || setting.type() === 'section-title') {
 						if (prop === 'options' && unwrappedProp.length) {
 							cleanSetting[prop] = ko.utils.arrayMap(unwrappedProp, function(setting) { return setting && setting.val ? setting.val : false});
-						} else 
+						} else
 							cleanSetting[prop] = unwrappedProp;
 					}
 				}
@@ -296,7 +303,6 @@ function ViewModel(data) {
 						return 'tab';
 					}
 				}());
-		console.log(file);
 		function addNewTab(tab) {
 			var l = allTabs.length,
 					newTab = new self.data.itemModel({ 
@@ -342,7 +348,6 @@ function ViewModel(data) {
 					newSettingsDictionary.splice(currentIndex, 1);
 				}
 			}
-			console.log(newSettingsDictionary);
 			// if there are still new settings that didn't exist yet, add them
 			if (newSettingsDictionary.length) {
 				for (var i = 0; i < newSettingsDictionary.length; i++) {
@@ -368,7 +373,6 @@ function ViewModel(data) {
 			fRead = new FileReader();
 	    fRead.readAsText(file);
 	    var waitForLoad = setInterval(function() {
-	      console.log(fRead.result);
 	      if (fRead.result.length) {
 	        try {
 						var result = JSON.parse(fRead.result);
@@ -376,7 +380,6 @@ function ViewModel(data) {
 						notify('jsonImport', 'invalidJson');
 						return;
 					}
-					console.log(sType);
 					switch (sType) {
 						case 'theme':
 							var themeTab = findTab('isTheme', true);
@@ -388,7 +391,6 @@ function ViewModel(data) {
 						break;
 						case 'tab':
 							var singleTab = findTab('lookup', result.tab.lookup);
-							console.log(singleTab);
 							if (singleTab)
 								replaceExistingTab(singleTab, result);
 							else
@@ -474,8 +476,50 @@ function ViewModel(data) {
 			}
 			return true;
 		});
+		/*ko.utils.registerEventHandler(window, 'beforeunload', function(e, elem) {
+			var currentData = self.fn.unmapTabs(self.data.items()), msg;
+			console.log(initialData);
+			if (initialData.length !== currentData.length) {
+			console.log(ko.utils.arrayMap(initialData, function(item) { return item.lookup}));
+			console.log(ko.utils.arrayMap(currentData, function(item) { return item.lookup}));
+				return self.i18n['warn_unsaved'];
+			}
+			for (var i = 0; i < currentData.length; i++) {
+				if (currentData[i].lookup !== initialData[i].tab.lookup) {
+					return self.i18n['warn_unsaved'];
+				}
+				if (currentData[i].settings.length !== initialData[i].settings.length) {
+			console.log('settinglength differs');
+					return self.i18n['warn_unsaved'];
+				}
+				for (var j = 0; currentData[i].settings.length; j++) {
+					for (var prop in currentData[i].settings[j]) {
+						if (typeof currentData[i].settings[j][prop] !== 'function') {
+						if (!initialData[i].settings[j][prop] || currentData[i].settings[j][prop] !== initialData[i].settings[j][prop]) {
+			console.log('settingprop differs: ' + currentData[i].settings[j][prop] + ' - vs. initial: ' + initialData[i].settings[j][prop]);
+							return self.i18n['warn_unsaved'];
+						}
+						}
+					}
+				}
+			}
+		});*/
 	};
 	this.delegatedEvents();
+	this.search = ko.observable('');
+	this.searchActive = ko.computed(function() { return self.search().length > 3;	});
+	this.searchFilter = ko.computed(function() { 
+		if (self.data.items().length && self.data.items()[self.data.activeItem()].settings.items().length) {
+		var currentTab = self.data.items()[self.data.activeItem()].settings.items(),
+				search = new RegExp(self.search());
+		return ko.utils.arrayFilter(currentTab, function(item) {
+			return search.test(item.lookup()) || search.test(item.label());
+		});
+		} else {
+			return [];
+		}
+	}).extend({rateLimit: 100});
+	this.imageBrowser = new ImageBrowser(this);
 }
 /**
  *  APP Data Structure: Tabs > Settings > Inputs
@@ -487,7 +531,6 @@ function ViewModel(data) {
  */
 function Tab(opts) {
 	var self = this;
-	console.log(opts);
 	this.label = ko.observable(opts.tab.label);
 	this.lookup = opts.tab.lookup === 'theme_settings' ? ko.observable('theme_settings') : ko.computed(function() { return makePHPSafe(self.label()); });
 	this.isPlugin = opts && opts.tab.plugin ? true : false;
@@ -498,7 +541,8 @@ function Tab(opts) {
 		if (window.VM && window.VM.i18n) {
 		  self.settings.defaults = {
 		    label: window.VM ? window.VM.i18n['def_setting_label'] : '',
-		    lookup: window.VM ? window.VM.i18n['def_setting_lookup']: '' }
+		    lookup: window.VM ? window.VM.i18n['def_setting_lookup']: '',
+		    value: '' }
 		  clearInterval(setDefs);
 		 }
   }, 100);
@@ -545,7 +589,16 @@ function Setting(opts) {
 	this.lookup = ko.observable(opts && opts.lookup ? opts.lookup : '');
 	this.value = ko.observable(opts && opts.value !== 'undefined' ? (/radio|select/.test(opts.type) ? parseInt(opts.value) : opts.value) :'');
 	this.type = ko.observable(opts && opts.type ? opts.type : 'text');
-	this.descr = ko.observable(opts ? opts.descr : '');
+	this.descr = ko.observable(opts && opts.descr ? opts.descr : '');
+	this.descrHTML = ko.computed(function() {
+		var newVal = self.descr().split(' ') || '',
+				str = '';
+		if (newVal.length) {
+			for (var i = 0; i < newVal.length; i++) 
+				str += /https*:\/\//.test(newVal[i]) ? '<a href="' + newVal[i] + '" target="_blank">' + newVal[i] + '</a> ' : newVal[i] + ' ';
+		}
+		return str;
+	});
 	this.access = ko.observable(opts && opts.access ? opts.access : 'normal');
 	this.names = {
 		label: ko.computed(function() { return self.lookup() + '-label'}),
@@ -600,10 +653,11 @@ Setting.prototype.changeInputType = function(data, e) {
 		// TODO: Locked value input doesn't work when repeatedly switching
 		var self = this, target = e ? (e.target ? e.target : e.srcElement) : false;
 		switch (this.type()) {
-			case 'section title': 
+			case 'section-title': 
 				break;
 			case 'text':
 			case 'textarea':
+			case 'image':
 				if (target && !/text/.test(this.cachedType))
 					this.value('');
 				break;
@@ -629,6 +683,37 @@ Setting.prototype.changeInputType = function(data, e) {
 		this.cacheType();
 		return data;
 }
+
+function ImageBrowser(context) {
+	var self = this,
+			elem = document.getElementById('image-browser'),
+			context = context,
+			loaded = false;
+	this.active = ko.observable(false);
+	this.origin = '';
+	this.uploads = ko.observableArray([]);
+	this.selected = ko.observable('');
+	this.toggle = function(data, e) {
+		var target = e.target || e.srcElement;
+		console.log(loaded);
+		console.log(data);
+		if (!self.loaded) {
+			getJSONData(null, 'loadImageBrowser', function(data, status, error) {
+				if (data !== null) {
+					var temp = $.parseJSON(data);
+					self.uploads(temp.sort(function(left, right) { return left.folder && right.folder ? 0 : (left.folder ? -1 : 1) }));
+					self.origin = context.data.items()[context.data.activeItem()].settings.items()[ko.contextFor(e.target || e.srcElement).$index()];
+					loaded = true;
+				}
+			});
+		}
+			self.origin = context.data.items()[context.data.activeItem()].settings.items()[ko.contextFor(e.target || e.srcElement).$index()];
+		self.selected('');
+		self.active(true);
+	}
+	this['select'] = function(data, e) { self.selected(data.path); };
+	this['export'] = function() { self.origin.value(self.selected()); self.active(false); };
+}
 function initVM() {
 	var ajaxData = {};
 	getJSONData(null, 'getI18NFile', function(data, status, error) {
@@ -640,7 +725,6 @@ function initVM() {
 		}
 	});
 	function getLangFile() {
-		console.log(window.i18nJSON);
 		var parsed = window.i18nJSON;	
 				if (!ajaxData.i18n)
 					ajaxData.i18n = {};
