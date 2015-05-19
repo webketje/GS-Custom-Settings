@@ -1,19 +1,35 @@
 <div class="edit-nav">
+	<a href="#help" style="padding-left: 5px; padding-right: 5px;" 
+		data-bind="click: function() { notify(document.getElementById('plugin-info-dg').innerHTML, 'notify', false, 'long')}">?</a>
 	<!-- ko if: editPermission -->
 	<a href="#mode-switch" data-bind="i18n: 'mode_' + mode.display(), css: {'hidden': !editPermission }, click: function() { mode.toggle(); data.filterToggle(); }"></a>
 	<!-- /ko -->
-	<a href="#data-export" data-bind="i18n: {'title': 'cmd_export'}" class="invisible-input-container">
-	<span data-bind="i18n: 'cmd_export'"></span>
-	<select id="export-tab" data-bind="onewaySelect: {
-				options: tabExportList, 
-				optionsText: 'label', 
-				optionsValue: 'lookup', 
-				value: 'none',
-				action: fn.exportData}"></select></a>
-	<a href="#data-import" class="invisible-input-container" data-bind="click: function() { $element.getElementsByTagName('input')[0].click(); return true;}">
+	<a href="#" class="invisible-input-container" data-bind="i18n: {'title': 'cmd_export'}">
+		<span data-bind="i18n: 'cmd_export'"></span>
+		<select id="export-tab" data-bind="onewaySelect: {
+			options: tabExportList, 
+			optionsText: 'label', 
+			optionsValue: 'lookup', 
+			value: 'none',
+			action: fn.exportData}">
+		</select>
+	</a>
+	<a href="#" 
+		 class="invisible-input-container" 
+		 data-bind="click: function(e) { $element.getElementsByTagName('input')[0].click(); return true;}">
 		<span data-bind="i18n: 'cmd_import'"></span>
 		<input type="file" class="invisible-input" data-bind="i18n: {'title': 'cmd_import'}, event: {change: fn.importData}">
 	</a>
+	<div id="plugin-info-dg" class="hidden">
+		<strong><span data-bind="i18n: 'title'"></span> <span data-bind="text: 'v. ' + pluginVersion"></span></strong>
+		<span class="hidden">(<a target="_blank"></a>)</span><br>
+		<strong style="margin-left: 17px;" id="translator" data-bind="text: document.getElementById('chosen-lang').value"></strong>
+		<span data-bind="text: ' ' + i18n.about_translated_by + ' ' + i18n.translation_meta.traductors"></span>
+		<br><a href="http://webketje.github.io/projects/gs-custom-settings" data-bind="i18n: 'about_docs'" style="margin-left: 17px;"></a> 
+		| <a href="http://get-simple.info/forums/showthread.php?tid=7099" data-bind="i18n: 'about_support_forum'"></a> 
+		| <a href="http://get-simple.info/extend/plugin/gs-custom-settings/913/" data-bind="i18n: 'about_plugin_page'"></a> 
+		| <a href="https://github.com/webketje/Gs-Custom-Settings" style="margin-right: 50px;">Github</a>
+	</div>
 </div>
 <h3 data-bind="text: data.activeItem() === false || data.items().length === 0 ? i18n['title'] : data.items()[data.activeItem()].label()"></h3>
 <div id="setting-search">

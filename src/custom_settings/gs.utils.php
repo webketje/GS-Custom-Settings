@@ -26,37 +26,61 @@
 	/** checks whether a given plugin is enabled in GS.
 	 * @param {string} $name - Name of the plugin FILE!!
 	 */
-	public static function pluginIsActive($name) {
+	public static function pluginIsActive($name) 
+	{
 		global $live_plugins;
 		$plugin = $live_plugins[strtolower($name . '.php')];
 		if (isset($plugin) && $plugin === 'true')
 			return true;
 		return false;
 	}
+		
+	/** Remove a directory with all nested files
+	 *  Thanks to http://stackoverflow.com/questions/3349753/delete-directory-with-files-in-it#answer-3349792
+	 */
+	public static function deleteDir($dirPath) 
+	{
+		if (is_dir($dirPath)) {
+		  if (substr($dirPath, strlen($dirPath) - 1, 1) != '/') {
+		    $dirPath .= '/';
+		  }
+		  $files = array_diff(scandir($dirPath), array('.', '..'));
+		  foreach ($files as $file) {
+		    if (is_dir($dirPath . $file)) {
+		      self::deleteDir($dirPath . $file);
+		    } else {
+		      unlink($dirPath . $file);
+		    }
+		  }
+		  rmdir($dirPath);
+	  }
+	}
+	
 	/** Query data/uploads folder for image files
 	 *  
 	 */
-	public static function getImageUploads($dir=GSDATAUPLOADPATH) {
+	public static function getImageUploads($dir=GSDATAUPLOADPATH) 
+	{
 		global $SITEURL;
 		$files = array_diff(scandir($dir), array('.', '..'));
 		$imgRegex = '#jpeg|jpg|gif|png|webp|bmp#';
 		$path = $dir . '/';
-		$result = array();
+		$result = array('folder'=>'uploads', 'path' => $SITEURL . '/data/uploads', 'children' => array());
 		$match = '';
 	
 		foreach ($files as $file) {
 			$current = $path . $file;
 			if (is_dir($current)) {		  
-			  array_push($result, array('folder'=> $file, 'images' => self::getImageUploads($current)));
+			  array_push($result['children'], array('folder'=> $file, 'path' => str_replace(GSDATAUPLOADPATH, 'uploads', $current), 'children' => self::getImageUploads($current)));
 			} elseif (is_file($current) && preg_match($imgRegex, strtolower(substr($current, -4)), $match)) {
 				$imgProps = getimagesize($current);
 				$imgReturn = array(
 					'name' => $file,
-					'path' => str_replace(GSDATAUPLOADPATH, $SITEURL . 'data/uploads', $current),
+					'path' => str_replace(GSDATAUPLOADPATH, $SITEURL . '/data/uploads', $current),
 					'size' => $imgProps[0] . ' x ' . $imgProps[1],
 					'ext' => $match[0]
 				);
-			  array_push($result, $imgReturn);
+			  array_push($result['children'], $imgReturn);
 			}
 		}
 		return $result;

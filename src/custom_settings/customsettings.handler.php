@@ -15,6 +15,9 @@
 				$path = urldecode($_REQUEST['path']);
 				$data = isset($_REQUEST['data']) ? $_REQUEST['data'] : NULL;
 				switch($_REQUEST['action']) {
+					case 'loadPluginInfo':
+						echo customSettings::loadPluginInfo();
+						break;
 					case 'loadImageBrowser':
 						echo json_encode(GSutils::getImageUploads());
 						break;
@@ -22,12 +25,12 @@
 						echo json_encode($i18n);
 						break;
 					case 'getDataFile':
-						exec_action('custom-settings-load');
 						echo json_encode($custom_settings);
 						break;
 					case 'saveData':
-						customSettings::saveAllSettings($data);
-						exec_action('custom-settings-save');
+						$custom_settings = array('data' => json_decode($data, TRUE));
+						$custom_settings_dictionary = customSettings::mapAllSettings();
+						customSettings::saveAllSettings($custom_settings);
 						break;
 					default: 
 						echo 'The data could not be loaded from the server';

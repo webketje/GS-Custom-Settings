@@ -206,10 +206,19 @@ var List = (function() {
 	}
 	List.prototype.keyHandler = function(data, e) {
 		var key = e.keyCode, activeItems = this.activeItems();
-		if (this.options.keysActive) {
+		if (this.options.keysActive && e.ctrlKey) {
 			switch (key) {
 				case 46: // delete
 					this.remove();
+					break;
+				case 38: // UP arrow
+						this.moveUp();
+					break;
+				case 40: // DOWN arrow
+						this.moveDown();
+					break;
+				case 13: // Enter
+						this.insertBefore();
 					break;
 			}
 		}
@@ -222,7 +231,7 @@ function singleSelectList(params) {
     this.items = ko.observableArray([]);
     this.message = ko.observable('');
     this.defaults = params.defaults;
-    this.activeItem = ko.observable(params && params.defaultActive > -1 ? params.defaultActive : -1);
+    this.activeItem = ko.observable(params && params.defaultActive ? params.defaultActive : false);
     this.itemModel = function(props) { 
 	    params.model.call(this, props);
 	    this.selected = ko.observable(false);
@@ -252,14 +261,14 @@ function singleSelectList(params) {
 	    return ko.utils.arrayFilter(self.items(), params.filter);
 	  });
 	  this.minLimit = params && params.minLimit ? params.minLimit : 0;
-    this.disable_del = ko.computed(function() { return self.minLimit >= self.items().length; });
-    this.disable_add = ko.computed(function() { return self.maxLimit === self.items().length; });
-    this.disable_up = ko.computed(function() { return self.activeItem() === 0; });
-    this.disable_down = ko.computed(function() { return self.activeItem() === (self.filterActive() ? self.filter().length-1 : self.items().length-1); });
+    this.disable_del = ko.computed(function() { return !self.filter().length });
+    this.disable_add = ko.computed(function() { return !self.maxLimit === self.filter().length; });
+    this.disable_up = ko.computed(function() { return !self.filter().length || self.activeItem() < 1 || self.activeItem() === false; });
+    this.disable_down = ko.computed(function() { return !self.filter().length || self.activeItem() === self.filter().length-1 });
 }
 singleSelectList.prototype.remove = function() { 
 	var activeItem = this.activeItem();
-  if (activeItem > -1 && this.items().length > 1) {
+  if (activeItem > -1 && this.items().length > this.minLimit) {
     if (this.items()[activeItem-1]) 
       this.activeItem(this.activeItem()-1);
     this.items.splice(activeItem,1);
@@ -280,10 +289,10 @@ singleSelectList.prototype.moveUp = function() {
     }
 };
 singleSelectList.prototype.moveDown = function() {
-  var moved;
+  var moved, activeItem = this.activeItem();
   if (!this.disable_down()) {
-    this.activeItem(this.activeItem()+1);
-    this.items.splice(this.activeItem(),0,this.items.splice(this.activeItem()-1,1)[0]);
+    this.items.splice(activeItem-1,0,this.items.splice(activeItem+1,1)[0]);
+    this.activeItem(activeItem+1);
   }
 };
 singleSelectList.prototype.setActive = function(data, e) {

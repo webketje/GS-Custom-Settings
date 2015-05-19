@@ -4,7 +4,7 @@ if (!class_exists('customSettings')) {
 	class customSettings {
 	
 		private static $defaultJSON = '{"site": []}';
-		
+		public static $version = '0.4';
 		
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
@@ -40,12 +40,6 @@ if (!class_exists('customSettings')) {
 			return $fin;
 		}
 		
-		public static function getLangFile() 
-		{
-			global $LANG;
-			$f = json_decode(file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'), TRUE);
-			return $f['strings'];
-		}
 		
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
@@ -68,6 +62,60 @@ if (!class_exists('customSettings')) {
 			}
 			return $result;
 		}
+		
+		/** Utility for mapping setting arrays to indexes, used in self::versionUpdate
+		 *  @param {array} $settings - An array of settings
+		 */
+		public static function mapToKeys($settings)
+		{
+			$result = array();
+			foreach ($settings as $value) 
+				$result[$value['lookup']] = $value;
+			return $result;
+		}
+		
+		/** Updates settings.json files from both plugins and themes
+		 *  ORI stands for origin, DAT for data
+		 *  @param {array} &$datFile - data file in /data/other/custom_settings
+		 *  @param {array} &$oriFile - data file that accompanies plugins/themes
+		 */
+		public static function versionUpdate(Array &$datFile, Array &$oriFile)
+		{
+			$vDat = &$datFile['tab']['version'];
+			$vOri = &$oriFile['tab']['version'];
+			// convert both versions to float numbers for easy comparison
+			$v1 = (float)substr($vDat, 0, strpos($vDat,'.')) . str_replace('.','',substr($vDat, strpos($vDat,'.')));
+			$v2 = (float)substr($vOri, 0, strpos($vOri,'.')) . str_replace('.','',substr($vOri, strpos($vOri,'.')));
+			// only update settings if no version in the data folder file is present or 
+			// if the version is older than the one included with the theme or plugin
+			if (isset($vOri) && (!isset($vDat) || $v2 > $v1)) {
+				$vDat = $vOri;
+				// map both plugin/ theme and data file to lookup-based key arrays
+				$oriS = self::mapToKeys($oriFile['settings']);
+				$datS = self::mapToKeys($datFile['settings']);
+				$merged = array();
+				foreach ($oriS as $ori) {
+					// if the setting already existed and is not a section title (those are always overwritten)
+					if (array_key_exists($ori['lookup'], $datS) && $datS[$ori['lookup']]['type'] !== 'section-title') {
+						// if the type of setting has changed, overwrite the old setting completely
+						if ($ori['type'] !== $datS[$ori['lookup']]['type'])
+							array_push($merged, $ori);
+						// else if the type is identical, overwrite all properties except the value
+						// needs to be more specific (eg for option settings)
+						else {
+							$oldVal = $datS[$ori['lookup']]['value'];
+							$mixS = $ori;
+							$mixS['value'] = $oldVal;
+							array_push($merged, $mixS);
+						}
+					// if the setting didn't exist, just create a new one
+					} else {
+						array_push($merged, $ori);
+					}
+				}			
+			$datFile['settings'] = $merged;
+			}
+		}
 		/** Retrieves settings from all plugins using this plugin
 		 *  if they are activated.
 		 */
@@ -80,12 +128,15 @@ if (!class_exists('customSettings')) {
 				$pluginData = GSDATAOTHERPATH . 'custom_settings/plugin_data_' . $pluginName . '.json';
 				$pluginDefs = GSPLUGINPATH . $pluginName . '/settings.json';
 				if ($activated != 'false' && file_exists($pluginDefs)) {
-					if (!file_exists($pluginData)) 
-						file_put_contents($pluginData, file_get_contents($pluginDefs));
-					
-					$contents = json_decode(file_get_contents($pluginData), TRUE);
-					$contents['tab']['plugin'] = true;
-					
+					$defContents = file_get_contents($pluginDefs);
+					if (!file_exists($pluginData)) {
+						file_put_contents($pluginData, $defContents);	
+						$contents = json_decode($defContents, TRUE);
+					} else {
+						$contents = json_decode(file_get_contents($pluginData), TRUE);
+					}
+					$defContents = json_decode($defContents, TRUE);
+					self::versionUpdate($contents, $defContents);
 					if (file_exists(GSPLUGINPATH . $pluginName . '/lang/' . $LANG . '.json')) {
 						// map setting indexes to a lookup dictionary for easy value assignment
 						// also used to check whether an entry still exists in the data file
@@ -102,6 +153,7 @@ if (!class_exists('customSettings')) {
 						}
 					}
 					$settings[$pluginName] = $contents;
+					$settings[$pluginName]['tab']['type'] = 'plugin';
 				}					
 			}
 			return $settings;
@@ -115,20 +167,36 @@ if (!class_exists('customSettings')) {
 			global $TEMPLATE, $LANG;
 			$themeDir = GSTHEMESPATH . $TEMPLATE . '/';
 			$themeDataPath = GSDATAOTHERPATH . 'custom_settings/theme_data_' . strtolower($TEMPLATE) . '.json';
+			$themeDefs = $themeDir . 'settings.json';
 			if (file_exists($themeDataPath)) {
-				$json = json_decode(file_get_contents($themeDataPath), TRUE);
+				if (file_exists($themeDefs)) 
+					$defContents = file_get_contents($themeDefs);
+				if (!file_exists($themeDataPath)) {
+					file_put_contents($themeDataPath, $defContents);
+					$contents = json_decode($defContents, TRUE);
+				} else
+					$contents = json_decode(file_get_contents($themeDataPath), TRUE);
+				$defContents = json_decode($defContents, TRUE);
+				self::versionUpdate($contents, $defContents);
 				// output expected by JS files
 				$file = array('theme_settings'=>array(
-					'settings' => $json['settings'],
-					'tab' => array('lookup'=> 'theme_settings', 'theme' => true)));
-					
+					'settings' => $contents['settings'],
+					'tab' => array('lookup'=> 'theme_settings', 'type' => 'theme')));
+				
+				if (isset($contents['tab'])) {
+					$tabOptions = array('version','enableReset','enableAccessAll');
+					foreach ($tabOptions as $opt) {
+						if (isset($contents['tab'][$opt]))
+							$file['theme_settings']['tab'][$opt] = $contents['tab'][$opt];
+					}
+				}
 				// map setting indexes to a lookup dictionary for easy value assignment
 				// also used to check whether an entry still exists in the data file
 				$dictionary = array();
 				for ($i = 0; $i < count($file['theme_settings']['settings']); $i++)
-					$dictionary[$file['theme_settings']['settings'][$i]['lookup']] = $i;
+					$dictionary[@$file['theme_settings']['settings'][$i]['lookup']] = $i;
 					
-				// handle lang with JSON file first
+				// handle lang
 				if (file_exists($themeDir . 'lang/' . $LANG . '.json')) {
 					$jsonLangFile = json_decode(file_get_contents($themeDir . 'lang/' . $LANG . '.json'), TRUE);
 					foreach ($jsonLangFile['strings'] as $string => $translation) {
@@ -137,19 +205,7 @@ if (!class_exists('customSettings')) {
 						if (isset($dictionary[$setting])) 
 							$file['theme_settings']['settings'][$dictionary[$setting]][$prop] = $translation;
 					}
-				// handle lang with PHP file if no JSON file
-				}/*  elseif (file_exists($themeDir . 'lang/' . $LANG . '.php')) {
-					include $themeDir . 'lang/' . $LANG . '.php';
-					if (isset($i18n) && is_array($i18n)) {
-						foreach ($i18n as $string => $translation) {
-							$prop = substr($string, strrpos($string, '_') + 1);
-							$setting = substr($string, 0, strlen($string) - (strlen($prop) + 1));
-							if (isset($dictionary[$setting])) 
-								$file['theme_settings']['settings'][$dictionary[$setting]][$prop] = $translation;
-						}
-					}
 				}
-				 */
 			} else {
 				if (file_exists(GSTHEMESPATH . $TEMPLATE . '/settings.json')) {
 					$defContents = file_get_contents(GSTHEMESPATH . $TEMPLATE . '/settings.json'); // default theme settings
@@ -157,7 +213,7 @@ if (!class_exists('customSettings')) {
 					file_put_contents($themeDataPath, $defContents);
 					$file = array('theme_settings'=>array(
 						'settings' => $defContentsPHP['settings'],
-						'tab' => array('lookup'=> 'theme_settings', 'theme' => true)));
+						'tab' => array('lookup'=> 'theme_settings', 'type' => 'theme')));
 				} else 
 					$file = array();
 			}
@@ -175,16 +231,20 @@ if (!class_exists('customSettings')) {
 			$result = array('data'=> array_merge($customSettings, $themeSettings, $pluginSettings));
 			return $result;
 		}
+		
 		/** Maps settings to an array dictionary containing indexes
-		 *  Used in all display/ return functions
+		 *  Used in all display/ return functions and globalized as $custom_settings_dictionary
 		 */
 		public static function mapAllSettings() 
 		{
 			global $custom_settings;
-			$root = $custom_settings['data'];
 			$result = array();
-			foreach ($root as $tab) {
+			// A little bit confusing, so: first iterate over $custom_settings and assign tab lookup
+			// to the result, nothing special here.
+			foreach ($custom_settings['data'] as $tab) {
 				$result[$tab['tab']['lookup']] = array();
+				// For each setting in the $custom_settings tab, assign the setting's lookup as key
+				// and the setting's index as value
 				for ($i = 0; $i < count($tab['settings']); $i++) {
 					if (isset($tab['settings'][$i]['lookup']))
 					$result[$tab['tab']['lookup']][$tab['settings'][$i]['lookup']] = $i;
@@ -192,58 +252,34 @@ if (!class_exists('customSettings')) {
 			}
 			return $result;
 		}
-		/** Maps settings to an array as outputted by JS after hitting Save Updates
-		 *  Required for passing to customSettings::saveAllSettings after 'custom-settings-save' hook has been executed
-		 *  @param {array} $settings - Settings data as passed from customSettings::retrieveAllSettings
-		 */
-		public static function mapSettingsByKind($settings) {
-			$result = array('theme'=> array(), 'site' => array(), 'plugins' => array());
-			foreach ($settings['data'] as $tab) {
-				if (isset($tab['tab']['plugin'])) 
-					$result['plugins'][$tab['tab']['lookup']] = $tab;
-				elseif (isset($tab['tab']['theme']))
-					$result['theme'] = $tab;
-				elseif (isset($tab['tab']['site']))
-					$result['site'][$tab['tab']['lookup']] = $tab;
-			}	
-			return $result;
-		} 
-		public static function saveAllSettings($settings) 
+		
+		public static function saveAllSettings($data) 
 		{
-			global $TEMPLATE, $custom_settings_dictionary;
+			global $TEMPLATE, $custom_settings;
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
-			$data = is_array($settings) ? $settings : json_decode($settings, TRUE);
-			$siteDataPath = GSDATAOTHERPATH . 'custom_settings/data.json';
-			$themeDataPath = GSDATAOTHERPATH . 'custom_settings/theme_data_' . strtolower($TEMPLATE) . '.json';
-			
-			if (isset($data['site'])) {
-				$output = array('site'=>array());
-				foreach ($data['site'] as $tab) {
-					array_push($output['site'], $tab);
-				}
-				file_put_contents($siteDataPath, fileUtils::indentJSON(json_encode($output))); 
+			// map paths; plugin path tildes are replaced with the plugin's lookup
+			$paths = array(
+				'theme' => GSDATAOTHERPATH . 'custom_settings/theme_data_' . strtolower($TEMPLATE) . '.json',
+				'plugin' => GSDATAOTHERPATH . 'custom_settings/plugin_data_~~~.json',
+				'site' => GSDATAOTHERPATH . 'custom_settings/data.json');
+			// settings saved to data.json (site) require an extra 'site' top property
+			$siteData = array('site'=>array());
+			// execute plugin hook
+			exec_action('custom-settings-save');
+			// iterate over collection of settings as outputted by JS.
+			// Each needs to save to its own file, except site tabs, therefore if a tab is of the type 'site',
+			// push it to the $siteData array and save all at the end
+			foreach($data['data'] as $tab) {
+			  $type = $tab['tab']['type'];
+			  $path = $paths[$type];
+				unset($tab['tab']['type']);
+				if ($type === 'site')	array_push($siteData['site'], $tab);
+				if ($type === 'plugin')	$path = str_replace('~~~', $tab['tab']['lookup'], $path);
+				if ($type !== 'site')	file_put_contents($path, fileUtils::indentJSON(json_encode($tab)));
 			}
-			if (isset($data['theme'])) 
-				file_put_contents($themeDataPath, fileUtils::indentJSON(json_encode($data['theme']))); 
-			if (isset($data['plugins'])) {
-				foreach ($data['plugins'] as $plugin) {
-					$pluginDataPath = GSDATAOTHERPATH . 'custom_settings/plugin_data_' . strtolower($plugin['tab']['lookup']) . '.json';
-					file_put_contents($pluginDataPath, fileUtils::indentJSON(json_encode($plugin)));
-				}
-			}
+			file_put_contents($paths['site'], fileUtils::indentJSON(json_encode($siteData)));
 		}
 		
-		/** Theme CSS Filter (% setting: tab/setting %) text from Pages content 
-		 *  Not used yet
-		 */
-		public static function styleSheetFilter($data) {
-			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
-			$path = GSTHEMESPATH . $TEMPLATE . '/dynamic.css';
-			$content = file_get_contents($path);
-			$regex = '#\(%\s*(\w*[\/]*\w*)\s*%\)#';
-			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $content);
-			return $new_content;
-		}
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
 		//                          Settings PHP API                            //
@@ -256,10 +292,11 @@ if (!class_exists('customSettings')) {
 		 */
 		public static function getSetting($tab, $setting, $echo=TRUE) 
 		{
-			global $custom_settings, $custom_settings_dictionary;
+			global $custom_settings, $custom_settings_dictionary, $i18n_active, $language;
 			$tab = $tab === 'theme' ? 'theme_settings' : $tab;
-			if (isset($custom_settings['data'][$tab]) && isset($custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]])) {
-				$settingInArray = $custom_settings['data'][$tab]['settings'][$custom_settings_dictionary[$tab][$setting]];
+			
+			if (isset($custom_settings['data'][$tab]) && isset($custom_settings['data'][$tab]['settings'][@$custom_settings_dictionary[$tab][$setting]])) {
+				$settingInArray = $custom_settings['data'][$tab]['settings'][@$custom_settings_dictionary[$tab][$setting]];
 				$value = $settingInArray['value']; 
 				$returnValue = '';
 				if ($value === TRUE)	
@@ -268,8 +305,8 @@ if (!class_exists('customSettings')) {
 					$returnValue = 'off';
 				elseif (isset($settingInArray['options']) && is_array($settingInArray['options']) && count($settingInArray['options'])) 
 					$returnValue = $settingInArray['options'][$value];
-				elseif ($settingInArray['type'] === 'image')
-					$returnValue = '<img src="' . $value . '" alt="' . $settingInArray['label'] . '">';
+				elseif ($settingInArray['type'] === 'image' && $value)
+					$returnValue = '<img src="' . str_replace(' ', '%20', $value) . '" alt="' . $settingInArray['label'] . '">';
 				else 
 					$returnValue = $value;
 				
@@ -283,7 +320,7 @@ if (!class_exists('customSettings')) {
 		/** Return a setting completely, or a setting's property
 		 *  @param {string} $tab
 		 *  @param {string} $setting
-		 *  @param {string} $prop - if NULL, returns the entire setting, else must be one of the setting's properties
+		 *  @param {string|boolean} [$prop=NULL] - if FALSE, returns the entire setting, else must be one of the setting's properties
 		 */
 		public static function returnSetting($tab, $setting, $prop=NULL) 
 		{
@@ -294,13 +331,60 @@ if (!class_exists('customSettings')) {
 					
 			if (isset($custom_settings['data'][$tab]) && isset($settingInArray)) {
 				if (isset($prop)) {
+					if ($prop === FALSE) 
+						return $settingInArray;
 					if (isset($settingInArray[$prop])) 
 						return $settingInArray[$prop];
 					return;
 				}
-				return $settingInArray;
+				return $settingInArray['value'];
 			}
+			return;
 		}		
+		
+		/** Returns a group of settings starting with the lookup $group, eg. 'social_'
+		 *  @param {string} $tab
+		 *  @param {string} $setting
+		 *  @param {string|boolean} [$prop=NULL] - if FALSE, returns the entire setting, else must be one of the setting's properties
+		 */
+		public static function returnSettingGroup($tab, $group, $prop=NULL)
+		{
+			global $custom_settings, $custom_settings_dictionary;
+			$tab = $tab === 'theme' ? 'theme_settings' : $tab;
+			$tabToSearch = @$custom_settings['data'][$tab]['settings'];
+			$result = array();
+			if ($prop === NULL)
+				$prop = 'value';
+			foreach ($tabToSearch as $setting) {
+				if (strpos(@$setting['lookup'], $group) !== FALSE) {
+					if ($prop === FALSE) {
+						$result[str_replace($group . '_', '', @$setting['lookup'])] = $setting;
+					} else if (isset($setting[$prop]))
+						$result[str_replace($group . '_', '', @$setting['lookup'])] = $setting[$prop];
+				}
+			}
+			return $result;
+		}
+		
+		/** Output an i18n-enabled (through I18N-plugin) setting completely, or a setting's property
+		 *  @param {string} $tab
+		 *  @param {string} $setting
+		 *  @param {string|boolean} [$prop=NULL] - if FALSE, returns the entire setting, else must be one of the setting's properties
+		 */
+		public static function getI18nSetting($tab, $setting, $echo=TRUE) 
+		{
+			global $i18n_active, $language;
+			if ($i18n_active && isset($language)) {
+				$langs = return_i18n_available_languages();
+				$index = array_search($language, $langs);
+				$settingVals = self::returnSetting($tab, $setting, 'values');
+				if ($echo === TRUE) 
+					echo $settingVals ? $settingVals[$index] : '';
+				else
+					return $settingVals ? $settingVals[$index] : $settingVals;
+			}
+			return;
+		}
 		
 		/** Remove a setting
 		 *  @param {string} $tab
@@ -417,35 +501,40 @@ if (!class_exists('customSettings')) {
 		 */
 		public static function contentFilter($content) {
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
-			$regex = '#\(%\s*setting[:=]\s*(\w*[\/]*\w*)\s*%\)#';
-			$new_content = html_entity_decode($content);
-			// is below line required?
-			preg_match_all($regex, $new_content, $matches, PREG_OFFSET_CAPTURE);
-			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $new_content);
+			$regex = '#\(%\s*setting[:=]\s*(.*[\/]*.*)\s*%\)#';
+			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $content);
 			return $new_content;
 		}
-		
 		/** Loads plugin content in plugin custom tab
 		 *  Hook: plugin init function in register_plugin
 		 */
 		public static function init() 
 		{
+			global $custom_settings, $i18n_initialized;
+			exec_action('custom-settings-load');
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
 			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
 			global $LANG, $TEMPLATE, $SITEURL, $mu_active;
 			$tmpl = GSPLUGINPATH . 'custom_settings/tmpl/';
-		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/nav.html');
-		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/main.html');
-		  ?>
+		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/nav.html'); ?>
+		  <div id="custom-rendering-top"><?php exec_action('custom-settings-render-top'); ?></div>
+		  <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/main.html'); ?>
 		  <br>
+		  <input type="hidden" id="i18n-plugin-langs" value="<?php echo function_exists('return_i18n_available_languages') ? str_replace('"', '\'', json_encode(return_i18n_available_languages())) : 'FALSE'; ?>">
+		  <div id="custom-rendering-bottom"><?php exec_action('custom-settings-render-bottom'); ?></div>
 			<input type="button" class="submit" data-bind="click: fn.saveData" value="<?php i18n('BTN_SAVESETTINGS'); ?>"/>
+			<span id="custom-buttons">
+				<!-- ko if: $root.data.activeItem() && data.items()[data.activeItem()] && data.items()[data.activeItem()].enableReset -->
+				<input type="button" class="submit" data-bind="click: data.items()[data.activeItem()].settings.resetToDefault, i18n: {value: 'label_reset'} "/>
+				<!-- /ko --></span>
+		  <input type="hidden" id="chosen-lang"  value="<?php echo $LANG; ?>">
 		  <input type="hidden" id="path-lang"  value="<?php echo GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'; ?>">
 		  <input type="hidden" id="path-handler"    value="<?php echo $SITEURL; ?>plugins/custom_settings/customsettings.handler.php">
 		  <input type="hidden" id="site-template"    value="<?php echo strtolower($TEMPLATE); ?>">
 		  <input type="hidden" id="edit-permission"    value="<?php echo $mu_active ? self::mu_getUserPermission() : self::getUserPermission(); ?>">
+		  <input type="hidden" id="plugin-version"  value="<?php echo self::$version; ?>">
 		  <input type="hidden" id="path-data"  value="<?php echo GSDATAOTHERPATH; ?>custom_settings/data.json">
 		  <input type="hidden" id="request-token" value="<?php echo fileUtils::requestToken('kosstt'); ?>">
-		  <script type="text/template" id="setting-list-tmpl"><?php echo file_get_contents($tmpl . 'setting-list.html'); ?></script>
 		  <script type="text/template" id="setting-item-edit-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-edit.html'); ?></script>
 		  <script type="text/template" id="setting-item-manage-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-manage.html'); ?></script>
 		  <script type="text/javascript">
@@ -460,80 +549,15 @@ if (!class_exists('customSettings')) {
 		//                                                                      //
 		//////////////////////////////////////////////////////////////////////////
 		
-		/** Automatic Upgrade from v0.1
-		 *  
+		/** Check for latest plugin version and prompt for download
+		 *  Returns plugin info from GS Extend API
 		 */
-		public static function upgradeFromAlpha() 
+		public static function loadPluginInfo() 
 		{
-			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
-			$oldDataDir = GSDATAOTHERPATH . 'ko_data/';
-			$oldKODir = GSPLUGINPATH . 'ko_base/';
-			$oldPluginDir = GSPLUGINPATH . 'ko_site_settings/';
-			$oldPluginFile = GSPLUGINPATH . 'ko_site_settings.php';
-			
-			if (is_dir($oldKODir))
-				self::deleteDir($oldKODir);
-			if (is_dir($oldPluginDir)) 
-				self::deleteDir($oldPluginDir);
-			if (file_exists($oldPluginFile)) 
-				unlink($oldPluginFile);
-			if (file_exists($oldDataDir . 'ko_site_settings/data.json')) {
-				$newData = array('site' => array());
-				$oldData = json_decode(file_get_contents($oldDataDir . 'ko_site_settings/data.json'), TRUE);
-				if (isset($oldData['data']['settings']) && count($oldData['data']['settings'])) {
-					foreach ($oldData['data']['tabs'] as $tab) {
-						array_push($newData['site'], 
-							array(
-								'tab' => array(
-									'lookup' => $tab['lookup'], 
-									'label' => $tab['label']
-								),
-								'settings' => array()));
-							foreach ($oldData['data']['settings'] as $setting) {
-							  if ($tab['lookup'] === $setting['tab']) {
-									unset($setting['id']);
-									unset($setting['tab']);
-									array_push($newData['site'][count($newData['site'])-1]['settings'],  $setting);
-							  }
-							}
-						}
-						file_put_contents(GSDATAOTHERPATH . 'custom_settings/data.json', fileUtils::indentJSON(json_encode($newData)));
-					} 
-				}
-			self::deleteDir($oldDataDir);
-		}
-		/** Remove a directory with all nested files
-		 *  Thanks to http://stackoverflow.com/questions/3349753/delete-directory-with-files-in-it#answer-3349792
-		 */
-		public static function deleteDir($dirPath) {
-			if (is_dir($dirPath)) {
-	    if (substr($dirPath, strlen($dirPath) - 1, 1) != '/') {
-	      $dirPath .= '/';
-	    }
-	    $files = array_diff(scandir($dirPath), array('.', '..'));
-	    foreach ($files as $file) {
-	      if (is_dir($dirPath . $file)) {
-	        self::deleteDir($dirPath . $file);
-	      } else {
-	        unlink($dirPath . $file);
-	      }
-	    }
-	    rmdir($dirPath);
-	    }
-		}
-		/** Debugging
-		 *  @param {string} [$testName] - (Optional) Testname
-		 *  @param {array} $func - array('namespace', 'method') or 'functionName'
-		 *  @param {array} $params - Array with parameters for the function
-		 *  @param {string} $expect - Expected output
-		 */
-		public static function itShould($testName='', $func, $params, $expect) 
-		{
-			$output = '<table><tr><td><strong>' . $testName . '</strong></td></tr>';
-			$output .= '<tr><td>Function: customSettings::' . (is_array($func) ? $func[1] : $func) . '(' . implode(',', $params) . ')</td></tr>';
-			$output .= '<tr><td>Expects: <strong>' . $expect . '</strong></td><td><strong style="color: ' . (call_user_func_array($func, $params) === $expect ? 'green;">Succeeded' : 'red;">Failed');
-			$output .= '</strong></td></tr></table>';
-			echo $output;
+			$pluginInfoJSON = file_get_contents('http://get-simple.info/api/extend/?id=913');
+			$pluginInfo = json_decode($pluginInfoJSON, TRUE);
+			if ($pluginInfo['status'] === 'successful')
+				return $pluginInfoJSON;
 		}
 		
 		/** Loads JS & CSS resources for the plugin
@@ -548,7 +572,8 @@ if (!class_exists('customSettings')) {
 			
 			GSutils::registerLib('custom_settings', array(
 				'knockout'        => array($SITEURL . 'plugins/custom_settings/js/knockout.js',         '3.2.0',FALSE),
-				'fileSaver'        => array($SITEURL . 'plugins/custom_settings/js/FileSaver.js',        '1',FALSE),
+				'fileSaver'       => array($SITEURL . 'plugins/custom_settings/js/FileSaver.js',        '1',FALSE),
+				'kopunches'       => array($SITEURL . 'plugins/custom_settings/js/knockout.punches.min.js', '0.5.1',FALSE),
 				'koBase'          => array($SITEURL . 'plugins/custom_settings/js/koBase.js',           '1.0',  TRUE),
 				'koStyle'         => array($SITEURL . 'plugins/custom_settings/css/ko-style.css',       '1.0',  'screen'),
 				'fontawesome'     => array($SITEURL . 'plugins/custom_settings/css/font-awesome.min.css', '4.3',  'screen'),
@@ -571,6 +596,15 @@ if (!class_exists('customSettings')) {
 				$contents = self::$defaultJSON;
 				file_put_contents($path . $file, $contents);
 			}
+		}
+		/** Simply outputs all lang strings to the page; 
+		 *  called via AJAX through customsettings.handler.php
+		 */
+		public static function getLangFile() 
+		{
+			global $LANG;
+			$f = json_decode(file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'), TRUE);
+			return $f['strings'];
 		}
 	}
 }

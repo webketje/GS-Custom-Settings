@@ -32,7 +32,20 @@ if (!Array.prototype.indexOf) {
 }
 /* PHP-ify utility */
 function makePHPSafe(val) {
-	return val ? val.replace(/[\s\W]+(?!\w)/g, '').replace(/[\s\W]+(?=\w)/g, '_').toLowerCase().trim() : '';
+	return val ? val.toLowerCase().trim()
+	.replace(/\s+/g, '_')
+	.replace(/[\u00C8-\u00CB\u00E8-\u00EB\u0112-\u011B]/gi,'e')
+	.replace(/[\u00C0-\u00C5\u00E0-\u00E5\u0100-\u0105]/gi,'a')
+	.replace(/[\u00C6]/gi,'ae')
+	.replace(/[\u00D0]/gi,'d')
+	.replace(/[\u00D1]/gi,'n')
+	.replace(/[\u0132\u0133]/gi,'ij')
+	.replace(/[\u00DD\u00FD\u00FF\u0176-\u0178\u0233\u0232\u024E\u024F]/gi,'y')
+	.replace(/[\u00D2-\u00D6\u014C-\u0151\u020C-\u020F\u00D8]/gi,'o')
+	.replace(/[\u00F9-\u00FC\u0168-\u0173\u01D3-\u01DC]/gi,'u')
+	.replace(/[\u00CC-\u00CF\u00EC-\u00EF\u0128-\u0131]/gi,'i')
+	.replace(/[\u00DF\u015A-\u0161\u0218\u0219\u023F]/gi,'s')
+	.replace(/[\u0162-\u0167\u021A\u021B\u023E]/gi,'t') : '';
 }
 /** COMPONENT VM : Array data with computed string displayed in textarea
  *  @param {object} params
@@ -311,7 +324,7 @@ function Notifier() {
 	      sel.append(this.i18n[str[i]]);
 	    }
 	  }
-	  sel.append(' <a href="#ok">' + this.i18n['OK'] + '</a>');
+	  sel.append(' <a href="#ok" style="float: right;">' + this.i18n['OK'] + '</a>');
 	  sel.find('a').on('click', function() { sel.fadeOut(fadeTime); clean(); });
 	  if (prompt) {
 	    sel.append('  <a href="#cancel">' + this.i18n['CANCEL'] + '</a>');
@@ -332,7 +345,7 @@ function Notifier() {
 	}
 	function init() {
 		if ($(appendTo).length)
-			$(appendTo).before('<div id="notification-manager"></div>');
+			$(appendTo).before('<div id="notification-manager" style="box-sizing: border-box;"></div>');
 		sel = $('#notification-manager');
 		sel.hide();
 	}

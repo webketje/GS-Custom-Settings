@@ -1,25 +1,25 @@
-<!-- ko if: !isHidden() -->
-	<div class="ko-list-item" data-bind="css: { 'active': false }">
-		<div class="ko-3-5 ko-float-left">
-			<!-- ko if: type() !== 'section-title' -->
-			<label data-bind="text: label, attr: {'for': lookup() + '-output'}" class="ko-mr-10"></label>
-			<span class="ko-1-3" style="display: inline-block;" data-bind="component: {
-				name: 'code-input', 
-				params: {
-					prefix: '(% setting: ',
-					suffix: '%)', 
-					data: $parents[1].lookup() + '/' + lookup(), 
-					tooltip: 'code_tip'}}">
-			</span>
-			<!-- /ko -->
-			<!-- ko if: type() === 'section-title' -->
-			<h3 data-bind="text: label().length ? label().slice(0,1).toUpperCase() + label().slice(1) : ''" style="margin-top: 10px; margin-bottom: 10px; font-style: normal;"></h3>
-			<!-- /ko -->
-			<p data-bind="html: descrHTML" class="ko-setting-descr ko-1-1"></p>
-		</div>
-		<!-- ko if: type() !== 'section-title' -->
-		<div class="ko-float-right ko-text-right ko-2-5" data-bind="template: {name: (type() + '-input-tmpl').replace(/\s+/g,'-'), data: $data}"></div>
-		<!-- /ko -->
-		<div class="ko-clearfix"></div>
+{{ #ifnot: isHidden }}
+<div class="ko-list-item">
+	<div class="ko-3-5 ko-float-left">
+		{{ #if: ko.unwrap(type) !== 'section-title' }}
+		<label class="ko-mr-10"	for="{{ ko.unwrap(lookup) + '-output' }}">{{ label }}</label>
+		<span class="ko-1-3" style="display: inline-block;" 
+			data-bind="component: {name: 'code-input', params: {
+				prefix: '(% setting: ',
+				suffix: ' %)', 
+				data: ko.unwrap($parents[1].lookup) + '/' + ko.unwrap(lookup), 
+				tooltip: 'code_tip'}}">
+		</span>
+		{{ /if }}
+		{{ #if: ko.unwrap(type) === 'section-title' }}
+		<h3 class="ko-section-title">{{ $root.utils.capitalize(label) }}</h3>
+		{{ /if }}
+		<p class="ko-setting-descr ko-1-1">{{{ descr }}}</p>
 	</div>
-<!-- /ko -->
+	{{ #if: ko.unwrap(type) !== 'section-title' }}
+	<div class="ko-float-right ko-text-right ko-2-5" 
+		data-bind="template: {name: (ko.unwrap(type) + '-input-tmpl').replace(/\s+/g,'-'), data: $data}"></div>
+	{{ /if }}
+	<div class="ko-clearfix"></div>
+</div>
+{{ /ifnot }}

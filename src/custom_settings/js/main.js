@@ -1,29 +1,46 @@
-/** TODO:
- *  - OK: (only tab name of plugins/ site + messages) Unhardcode I18n
- *  - If value of options input is null, output should be saved as option 0
- *  - Provide window popup fallback for settings export
- *  - Test whether tabs can be translatable 
- *  - Finalize notifier
- *  - Set no-select class only in edit mode
- */
-/**
- *  TESTED:
- *  Export: (IE8+?)
- *    - All site settings: working
- *    - Site tab for use as plugin/ theme: working
- *    - Theme settings: working
- *    - Plugin settings: working
- *  Import: (IE10+)
- *    - All site settings: broken
- *    - Site tab: working (may be fragile, manual trigger of ko.valueHasMutated() )
- *    - Theme settings: working, but does not use ko.valueHasMutated() [must be updated if possible to edit]
- *    - Plugin settings: working, but does not use ko.valueHasMutated() [must be updated if possible to edit]
- */
+var GLOBAL = GLOBAL || {
+	ADMINLANG: $('#chosen-lang').val().split('_')[0],
+	PLUGINVER: $('#plugin-version').val(),
+	I18NLANGS: (function() {
+		var test = $('#i18n-plugin-langs').val().replace(/\'/g, '"');
+	  try {
+			test = JSON.parse(test);
+		} catch (e) {
+			return false;
+		}
+		return test;
+	}())
+};
+function Utils() {
+	this.capitalize = function(string) {
+		var u = ko.unwrap(string);
+		return u.length ? u.slice(0,1).toUpperCase() + u.slice(1) : '';
+	};
+}
 function ViewModel(data) {
 	var self = this, 
 			initialData = '';
+	this.pluginVersion = GLOBAL['PLUGINVER'];
+	this.utils = new Utils();
 	this.notify = new Notifier();
+	this.allLangs = GLOBAL['I18NLANGS'];
 	this.i18n = data.i18n;
+	getJSONData(null, 'loadPluginInfo', function(data) {
+		self.pluginInfo = $.parseJSON(data);
+		var i = self.pluginVersion.indexOf('.'),
+				i2 = self.pluginInfo.version.indexOf('.');
+		var vLocal = parseFloat(self.pluginVersion.slice(0,i) + '.' + self.pluginVersion.slice(i + 1).replace(/\./g,'')),
+				vRemote = parseFloat(self.pluginInfo.version.slice(0,i2) + '.' + self.pluginInfo.version.slice(i2 + 1).replace(/\./g,''));
+		self.notif.version[0] = self.i18n.about_new_version + ' <a href="http://get-simple.info/extend/export/10656/913/gs-custom-settings.zip">' 
+			+ self.i18n.about_download + ' v.' + self.pluginInfo.version + '</a>';
+		var dlLink = document.getElementById('plugin-info-dg').getElementsByTagName('a')[0];
+		if (vRemote > vLocal) {
+			notify('version');
+			dlLink.href = self.pluginInfo.file;
+			dlLink.textContent = self.i18n.about_download + ' v.' + self.pluginInfo.version;
+			dlLink.parentNode.className = '';
+		}
+	});
 	this.settings = false;
 	this.mode = new Switch(['edit','manage']);
 	this.settingTemplate = ko.computed(function() { return 'setting-item-' + self.mode.template(); });
@@ -45,6 +62,7 @@ function ViewModel(data) {
 			settingLookups: ['error_conflict_settings','error'],
 			tabLookups:     ['error_conflict_tabs',    'error']
 		},
+		version: ['', 'notify', false, 'long'],
 		actions: {
 			clipBoardCopy:    ['info_clipboardcopy', 'updated', false, 'short'],
 			tabRemove:        ['warn_tab_remove', 'notify', {ok: function() {singleSelectList.prototype.remove.apply(self.data);}}],
@@ -73,7 +91,7 @@ function ViewModel(data) {
 		if (!data.hasOwnProperty('length')) {
 		for (var item in data) {
 			var obj = data[item];
-			obj.tab.label = obj.tab && obj.tab.theme ? self.i18n['label_themesettings'] : obj.tab.label;
+			obj.tab.label = obj.tab && obj.tab.type === 'theme' ? self.i18n['label_themesettings'] : obj.tab.label;
 			dataArray.push(obj);
 		}
 		}
@@ -81,8 +99,8 @@ function ViewModel(data) {
 		var result = new singleSelectList({
 			data: dataArray,
 			model: Tab,
-			filter: function(item) { return !item.isTheme && !item.isPlugin; },
-			defaults: {tab: {label: self.i18n['def_tab_label']}},
+			filter: function(item) { return item.type === 'site'; },
+			defaults: {tab: {label: self.i18n['def_tab_label'], lookup: 'new_tab'}},
 			defaultActive: 0,
 			minLimit: 0,
 			custom: { 
@@ -97,7 +115,7 @@ function ViewModel(data) {
 					{value: 'fancy-radio',    label: self.i18n['input_fancy_radio']},
 					{value: 'switch',         label: self.i18n['input_switch']},
 					{value: 'color',          label: self.i18n['input_color']},
-					{value: 'section-title',  label: 'Section Title'}
+					{value: 'section-title',  label: self.i18n['input_section_title']}
 				], 
 				accessLevels: [
 					{value: 'normal',         label: self.i18n['access_normal']},
@@ -118,67 +136,46 @@ function ViewModel(data) {
 			notify('duplicate','settingLookups');
 			return;
 		}
-	/* 	var temp = self.fn.unmapTabs(self.data.items());
-		temp = ko.utils.arrayMap(temp, function(item) {
-			return {tab: {lookup: item.lookup,  label: item.label}, settings: item.settings};
-		}); 
-		initialData = temp;
-		console.log(initialData);*/
 		setJSONData(paths.data, 'saveData', data, function(data, status, error) {
-			if (data === null) 
+			if (data === null) {
 				notify('actions','saveError');
-			else
+			} else {
 				notify('actions','saveSucceeded');
+			}
 		});
 	};
-	// used in oneWaySelect binding for tab switching a setting
-	this.fn.moveSettingsToOtherTab = function(value, data, e) {
-		var allTabs = self.data.items(),
-				activeTabData = allTabs[self.data.activeItem()].settings,
-				activeTabItems = activeTabData.items,
-				activeTabActiveItems = activeTabData.activeItems(),
-				newTab = ko.utils.arrayFirst(allTabs, function(tab) { 
-					return tab.lookup() === value; 
-				});
-		if (activeTabActiveItems.length) {
-			var len = newTab.settings.items().length;
-			for (var i = activeTabActiveItems.length; i--;) {
-				var move = activeTabItems.splice(i, 1)[0];
-				move.selected(false);
-				newTab.settings.items.splice(len, 0, move);
-			};
-		}
-};
 	// Nested unmapping functions in execution order
 	this.fn.unmapSettings = function(settings) {
 		var ignore = {
 			// id & phpFetch included as no longer used, but still in v.0.1
-			'all': ['isHidden','isLocked','isOpen','hasValue','displayInManageMode','lookupOutput', 'names', 'cachedType',
+			'all': ['isHidden','isLocked','isOpen','hasValue','displayInManageMode','lookupOutput', 'names', 'cachedType','activeValue', 'activeLang',
 							'isOptionInput','faIcon','changeInputType','toggle','parentList','display','icon', 'selected', 'descrHTML'],
 			'text': ['options'],
 			'textarea': ['options'],
-			'checkbox': ['options'],
+			'checkbox': ['options','i18n','values'],
 			// V. 0.2. added switch ignore options
-			'switch': ['options'],
-			'radio': [],
-			'select': [],
-			'image': ['options'],
-			'section-title': ['options','value','access','descr'],
-			'fancy-checkbox': ['options']
+			'switch': ['options','i18n','values'],
+			'radio': ['i18n','values'],
+			'color': ['options','i18n','values'],
+			'select': ['i18n','values'],
+			'image': ['options','i18n','values'],
+			'section-title': ['options','value','access','descr','i18n','values'],
+			'fancy-checkbox': ['options','i18n','values']
 		};
 		
-		function getCleanSetting(setting, isPluginSetting) {
+		function getCleanSetting(setting) {
 			var cleanSetting = {},
 					ignoredItems = ignore.all.concat(ignore[setting.type()]);
-					
+			
 			for (var prop in setting) {
 				unwrappedProp = ko.utils.unwrapObservable(setting[prop]);
 				if (!inArray(prop, ignoredItems)) {
 					if ((setting.hasValue() && typeof unwrappedProp !== 'function') || setting.type() === 'section-title') {
-						if (prop === 'options' && unwrappedProp.length) {
+						console.log()
+						if ((prop === 'options' && unwrappedProp.length) || (prop === 'values' && setting['i18n']() === true)) {
 							cleanSetting[prop] = ko.utils.arrayMap(unwrappedProp, function(setting) { return setting && setting.val ? setting.val : false});
-						} else
-							cleanSetting[prop] = unwrappedProp;
+						} else if ((prop === 'i18n' && unwrappedProp === true) || !/values|i18n/.test(prop)){
+							cleanSetting[prop] = unwrappedProp;}
 					}
 				}
 			}	
@@ -193,7 +190,7 @@ function ViewModel(data) {
 		return settingsData;
 	};
 	this.fn.unmapTabs = function(tabs) {
-		var ignore = ['settings'], //settings have their own unmapping function, added afterwards
+		var ignore = ['settings','selected'], //settings have their own unmapping function, added afterwards
 				tabs = tabs && tabs.length ? tabs : self.data.items();
 
 		return ko.utils.arrayMap(tabs, function(tab) {
@@ -211,22 +208,12 @@ function ViewModel(data) {
 	};
 	this.fn.unmapData = function(unmappedTabs) {
 		var tabs = self.fn.unmapTabs(unmappedTabs) || self.fn.unmapTabs(),
-				result = {site: {}};
-				
+				result = {}, tabOpts = ['version','enableReset','enableAccessAll'];
 		ko.utils.arrayForEach(tabs, function(tab) {
-			if (tab.isPlugin === true) {
-				if (!result.plugins) result.plugins = {};
-				result.plugins[tab.lookup] = {};
-				result.plugins[tab.lookup].tab = {lookup: tab.lookup,	label: tab.label};
-				result.plugins[tab.lookup].settings = tab.settings;
-			} else if (tab.isTheme === true) {
-				if (!result.theme) result.theme = {};
-				result.theme.settings = tab.settings;
-			} else {
-				result.site[tab.lookup] = {};
-				result.site[tab.lookup].tab = {lookup: tab.lookup,	label: tab.label};
-				result.site[tab.lookup].settings = tab.settings;
-			}				
+			result[tab.lookup] = {tab: {lookup: tab.lookup, label: tab.label, type: tab.type}, settings: tab.settings };
+			for (var opt = 0; opt < tabOpts.length; opt++) {
+				if (typeof tab[tabOpts[opt]] !== 'undefined') result[tab.lookup].tab[tabOpts[opt]] = tab[tabOpts[opt]];
+			}
 		});
 		return result;
 	};
@@ -238,33 +225,36 @@ function ViewModel(data) {
 				selTab = ko.utils.arrayFirst(tabs, function(tab) {
 					return tab.lookup() === value;
 				}) || 'site_settings', 
-				tabType = selTab.isTheme ? 'theme' : (selTab.isPlugin ? 'plugin' : (selTab === 'site_settings' ? 'site' : 'tab')),
+				tabType = selTab === 'site_settings' ? 'site' : (selTab.type === 'site' ? 'tab' : selTab.type),
 				lookup = value !== 'site_settings' ? selTab.lookup() : null;
 				fileName = tabType + 'data' + (value !== 'site_settings' ? '_' + selTab.lookup() : '') + '.json',
 				data = value !== 'site_settings' ? self.fn.unmapData([selTab]) : self.fn.unmapData();
-				
+				console.log(data);
 		switch (tabType) {
 			case 'site':
 				fileName = 'data.json';
 				var temp = {site: []};
-				for (var tabLookup in data) {
-					for (var tab in data[tabLookup]) {
-						temp.site.push(data[tabLookup][tab]);
-					}
+				for (var tab in data) {
+					var tempTab = data[tab];
+					delete tempTab.tab.type;
+					temp.site.push(tempTab);
 				}
 				data = temp;
 			break;
 			case 'theme':
 				fileName = 'theme_data_' + document.getElementById('site-template').value + '.json';
-				data = {theme: document.getElementById('site-template').value, settings: data['theme']['settings']};
+				delete data[lookup].tab.type;
+				data = {tab: data[lookup].tab, settings: data[lookup].settings};
 			break;
 			case 'plugin':
 				fileName = 'plugin_data_' + lookup + '.json';
-				data = data['plugins'][lookup];
+				delete data[lookup].tab.type;
+				data = {tab: data[lookup].tab, settings: data[lookup].settings};
 			break;
 			case 'tab': 
 				fileName = lookup + '_data.json';
-				data = data['site'][lookup];
+				delete data[lookup].tab.type;
+				data = {tab: data[lookup].tab, settings: data[lookup].settings};
 		}
 		// FileSaver.js function; should work on all browsers.
 		saveTextAs(ko.toJSON(data, null, '\t'), fileName);
@@ -311,7 +301,7 @@ function ViewModel(data) {
 					});
 			// make sure we append the tab before plugins/ theme settings
 			while (l--)
-				if (allTabs[l].isTheme || allTabs[l].isPlugin) break;
+				if (allTabs[l].type !== 'site') break;
 				self.data.items.splice(l || 0, 0, newTab);
 		}
 		function replaceExistingTab(oldTab, newTab) {
@@ -408,7 +398,7 @@ function ViewModel(data) {
 						case 'plugin':
 							var pluginTab = findTab('lookup', result.tab.lookup);
 							// only allow importing settings from an activated plugin
-							if (pluginTab && pluginTab.isPlugin)
+							if (pluginTab && pluginTab.type === 'plugin')
 								replaceExistingTab(pluginTab, result);
 							else 
 								notify('jsonImport', 'pluginMissing');						
@@ -420,6 +410,9 @@ function ViewModel(data) {
 		}
 	};
 	this.data = this.fn.map(data.rawData.data);
+	if (this.data.items().length) {
+		this.data.activeItem(0);
+	}
 	if (location.href.match('#')) {
 		var anchor = location.href.slice(location.href.indexOf('#') + 1), tab = 0;
 		ko.utils.arrayForEach(this.data.items(), function(item, index) { 
@@ -433,6 +426,13 @@ function ViewModel(data) {
 			notify('actions','tabRemove');
 		else 
 			singleSelectList.prototype.remove.apply(self.data);
+	};
+	this.data.activeItemValid = ko.computed(function() {
+		return self.data.activeItem() > -1 && self.data.items().length && self.data.items()[self.data.activeItem()];
+	});
+	this.data.activeTabProp = ko.observable('label');
+	this.data.toggleActiveTabProp = function() {
+		self.data.activeTabProp(self.data.activeTabProp() === 'label' ? 'lookup' : 'label');
 	};
 	// rate limit required to prevent errors coming from tab removal
 	this.tabExportList = ko.computed(function() {
@@ -468,7 +468,11 @@ function ViewModel(data) {
 		return flag;
 	};
 	this.delegatedEvents = function() {
-		ko.utils.registerEventHandler(document.body, 'keyup', function(e, elem) {
+		ko.utils.registerEventHandler(document.body, 'keydown', function(e, elem) {
+			if (e.ctrlKey && e.keyCode === 70) {
+				e.preventDefault();
+			  document.getElementById('setting-search').getElementsByTagName('input')[0].focus();
+			}
 			if (e.ctrlKey && e.keyCode === 67 && document.activeElement.className.match('ko-code')) {
 			  if (document.activeElement.selectionStart == 0 && document.activeElement.selectionEnd == document.activeElement.value.length) {
 			    notify('actions','clipBoardCopy');
@@ -476,76 +480,64 @@ function ViewModel(data) {
 			}
 			return true;
 		});
-		/*ko.utils.registerEventHandler(window, 'beforeunload', function(e, elem) {
-			var currentData = self.fn.unmapTabs(self.data.items()), msg;
-			console.log(initialData);
-			if (initialData.length !== currentData.length) {
-			console.log(ko.utils.arrayMap(initialData, function(item) { return item.lookup}));
-			console.log(ko.utils.arrayMap(currentData, function(item) { return item.lookup}));
-				return self.i18n['warn_unsaved'];
-			}
-			for (var i = 0; i < currentData.length; i++) {
-				if (currentData[i].lookup !== initialData[i].tab.lookup) {
-					return self.i18n['warn_unsaved'];
-				}
-				if (currentData[i].settings.length !== initialData[i].settings.length) {
-			console.log('settinglength differs');
-					return self.i18n['warn_unsaved'];
-				}
-				for (var j = 0; currentData[i].settings.length; j++) {
-					for (var prop in currentData[i].settings[j]) {
-						if (typeof currentData[i].settings[j][prop] !== 'function') {
-						if (!initialData[i].settings[j][prop] || currentData[i].settings[j][prop] !== initialData[i].settings[j][prop]) {
-			console.log('settingprop differs: ' + currentData[i].settings[j][prop] + ' - vs. initial: ' + initialData[i].settings[j][prop]);
-							return self.i18n['warn_unsaved'];
-						}
-						}
-					}
-				}
-			}
-		});*/
 	};
 	this.delegatedEvents();
 	this.search = ko.observable('');
 	this.searchActive = ko.computed(function() { return self.search().length > 3;	});
 	this.searchFilter = ko.computed(function() { 
-		if (self.data.items().length && self.data.items()[self.data.activeItem()].settings.items().length) {
+		if (self.data.items().length && self.data.items()[self.data.activeItem()] && self.data.items()[self.data.activeItem()].settings.items().length) {
 		var currentTab = self.data.items()[self.data.activeItem()].settings.items(),
-				search = new RegExp(self.search());
+				search = new RegExp(self.search().toLowerCase());
 		return ko.utils.arrayFilter(currentTab, function(item) {
-			return search.test(item.lookup()) || search.test(item.label());
+			return search.test(ko.unwrap(item.lookup).toLowerCase()) || search.test(item.label().toLowerCase());
 		});
 		} else {
+			// return an array as expected for the list view
 			return [];
 		}
 	}).extend({rateLimit: 100});
-	this.imageBrowser = new ImageBrowser(this);
+	// this.imageBrowser = new ImageBrowser(this);
 }
-/**
- *  APP Data Structure: Tabs > Settings > Inputs
- */
+
 /** MODEL: Tab (constructor)
  *  @param {object} opts
  *  @param {string} opts|label - A label for the tab
  *  @param {string} [opts|icon] - (Optional) An icon for the tab
  */
 function Tab(opts) {
-	var self = this;
+	var self = this, cachedLookup = ko.observable(opts.tab.lookup !== makePHPSafe(window.i18nJSON.strings['def_tab_label']) ? opts.tab.lookup : false);
 	this.label = ko.observable(opts.tab.label);
-	this.lookup = opts.tab.lookup === 'theme_settings' ? ko.observable('theme_settings') : ko.computed(function() { return makePHPSafe(self.label()); });
-	this.isPlugin = opts && opts.tab.plugin ? true : false;
-	this.isTheme = opts && opts.tab.theme ? true : false;
+	var tabOpts = ['version','enableReset','enableAccessAll'];
+	for (var j = 0; j < tabOpts.length; j++) {
+		if (typeof opts.tab[tabOpts[j]] !== 'undefined')
+			this[tabOpts[j]] = opts.tab[tabOpts[j]];
+	}
+	this.lookup = opts.tab.lookup === 'theme_settings' ? ko.observable('theme_settings') : ko.computed({
+		read: function() { return cachedLookup() ? cachedLookup() : makePHPSafe(self.label()); },
+		write: function(value) { cachedLookup(makePHPSafe(value)); }
+	});
+	this.type = opts.tab && opts.tab.type ? opts.tab.type : 'site';
 	this.settings = new List({ data: opts && opts.settings || [], model: Setting, keys: true});
 	// TODO: find a better way to set default label & lookup
 	var setDefs = setInterval(function() {
 		if (window.VM && window.VM.i18n) {
 		  self.settings.defaults = {
-		    label: window.VM ? window.VM.i18n['def_setting_label'] : '',
-		    lookup: window.VM ? window.VM.i18n['def_setting_lookup']: '',
+		    label: window.VM.i18n['def_setting_label'] ,
+		    lookup: window.VM.i18n['def_setting_lookup'],
+		    langs: window.VM.allLangs,
 		    value: '' }
 		  clearInterval(setDefs);
 		 }
   }, 100);
+	this.settings.resetToDefault = function() {
+		var settings = self.settings.items();
+		if (settings.length && self.enableReset) {
+			for (var i = 0; i < settings.length; i++) {
+				if (settings[i].value && settings[i]['default']) // make sure to exclude section titles
+					settings[i].value(settings[i]['default']);
+			}
+		}
+	};
 	this.settings.activeItemCount = ko.computed(function() { return self.settings.activeItems().length; });
 	this.settings.disable_open = ko.computed(function() { return self.settings.activeItemCount() < 1; });
 	this.settings.allAreOpened = ko.computed(function() { 
@@ -584,33 +576,41 @@ function Tab(opts) {
  *  @param {string} opts|descr - (optional) A description for the setting (backend)
  *  @param {object} [opts|data=new Input]  - (optional) Data for the setting (empty if new)
  */
-function Setting(opts) {
+var Setting = function(opts) {
 	var self = this;
 	this.lookup = ko.observable(opts && opts.lookup ? opts.lookup : '');
 	this.value = ko.observable(opts && opts.value !== 'undefined' ? (/radio|select/.test(opts.type) ? parseInt(opts.value) : opts.value) :'');
+	this.values = ko.observableArray([{val: self.value}]);
+	this.activeLang = ko.observable(0);
+	if (opts.i18n) {
+		ko.utils.arrayForEach(opts.values || [], function(item, i) {
+			if (i !== 0)
+				self.values.push({val: ko.observable(item)});
+		});
+		var langs = GLOBAL['I18NLANGS'] || [];
+		if (self.values().length < langs.length) {
+			for (var i = self.values().length; i < langs.length; i++) {
+				self.values.push({val: ko.observable(self.value())});
+			}
+		} else if (self.values().length > langs.length) {
+			for (var i = langs.length; i < self.values().length; i++) {
+				self.values.pop();
+			}
+		}
+	}
 	this.type = ko.observable(opts && opts.type ? opts.type : 'text');
 	this.descr = ko.observable(opts && opts.descr ? opts.descr : '');
-	this.descrHTML = ko.computed(function() {
-		var newVal = self.descr().split(' ') || '',
-				str = '';
-		if (newVal.length) {
-			for (var i = 0; i < newVal.length; i++) 
-				str += /https*:\/\//.test(newVal[i]) ? '<a href="' + newVal[i] + '" target="_blank">' + newVal[i] + '</a> ' : newVal[i] + ' ';
-		}
-		return str;
-	});
 	this.access = ko.observable(opts && opts.access ? opts.access : 'normal');
 	this.names = {
-		label: ko.computed(function() { return self.lookup() + '-label'}),
+		label:  ko.computed(function() { return self.lookup() + '-label'}),
 		lookup: ko.computed(function() { return self.lookup() + '-lookup'}),
 		access: ko.computed(function() { return self.lookup() + '-access'}),
-		type: ko.computed(function() { return self.lookup() + '-type'}),
-		tab: ko.computed(function() { return self.lookup() + '-tab'}),
-		descr: ko.computed(function() { return self.lookup() + '-descr'}),
-		options: ko.computed(function() { return self.lookup() + '-options'}),
-		value: ko.computed(function() { return self.lookup() + '-value'})
+		type:   ko.computed(function() { return self.lookup() + '-type'}),
+		tab:    ko.computed(function() { return self.lookup() + '-tab'}),
+		descr:  ko.computed(function() { return self.lookup() + '-descr'}),
+		options:ko.computed(function() { return self.lookup() + '-options'}),
+		value:  ko.computed(function() { return self.lookup() + '-value'})
 	}
-	// TODO: un-hardcode this
 	this.label = opts ? ko.observable(opts.label) : this.label;
 	this.options = ko.observableArray(opts && opts.options ? ko.utils.arrayMap(opts.options, function(option, i) {
 		return {val: option, index: i};
@@ -629,11 +629,20 @@ function Setting(opts) {
 	});
 	this.toggle = function() { this.value(!this.value())};
 	// state helpers
+	this.i18n = ko.observable(opts && opts.i18n || false).extend({rateLimit: 100});
+	this.i18n.subscribe(function(newVal) {
+		for (var i = self.values().length; i < VM.allLangs.length; i++) {
+			self.values.push({val: ko.observable(self.value())});
+		}
+	});
 	this.isOpen = new Switch(['plus-square','minus-square']);
 	this.isHidden = ko.computed(function() { return self.access() === 'hidden';	});
 	this.isLocked = ko.computed(function() { return self.access() === 'locked';	});
 	this.hasValue = ko.computed(function() { return typeof self.value() !== 'undefined'; });
 	this.isOptionInput = ko.computed(function() { return /select|radio/.test(self.type()); });
+	for (var opt in opts) {
+		if (!this[opt]) this[opt] = opts[opt];
+	}
 }
 Setting.prototype.castValue = function() {
 	var val = this.value();
@@ -649,8 +658,7 @@ Setting.prototype.castValue = function() {
 // setting type caching should prevent the setting's value from being reset,
 // when the type is changed, but the values are of the same type (booleans, options or text)
 Setting.prototype.cacheType = function() { this.cachedType = this.type();};
-Setting.prototype.changeInputType = function(data, e) { 
-		// TODO: Locked value input doesn't work when repeatedly switching
+Setting.prototype.changeInputType = function(data, e) {
 		var self = this, target = e ? (e.target ? e.target : e.srcElement) : false;
 		switch (this.type()) {
 			case 'section-title': 
@@ -695,24 +703,53 @@ function ImageBrowser(context) {
 	this.selected = ko.observable('');
 	this.toggle = function(data, e) {
 		var target = e.target || e.srcElement;
-		console.log(loaded);
-		console.log(data);
 		if (!self.loaded) {
 			getJSONData(null, 'loadImageBrowser', function(data, status, error) {
 				if (data !== null) {
 					var temp = $.parseJSON(data);
-					self.uploads(temp.sort(function(left, right) { return left.folder && right.folder ? 0 : (left.folder ? -1 : 1) }));
+					temp.children.sort(function(left, right) { return left.folder && right.folder ? 0 : (left.folder ? -1 : 1) })
+					self.uploads(temp);
 					self.origin = context.data.items()[context.data.activeItem()].settings.items()[ko.contextFor(e.target || e.srcElement).$index()];
 					loaded = true;
 				}
 			});
 		}
-			self.origin = context.data.items()[context.data.activeItem()].settings.items()[ko.contextFor(e.target || e.srcElement).$index()];
+		self.origin = context.data.items()[context.data.activeItem()].settings.items()[ko.contextFor(e.target || e.srcElement).$index()];
 		self.selected('');
 		self.active(true);
 	}
-	this['select'] = function(data, e) { self.selected(data.path); };
-	this['export'] = function() { self.origin.value(self.selected()); self.active(false); };
+	this.folderPath = ko.observableArray(['uploads']);
+	this.selFolder = ko.computed(function() {
+		var u = self.uploads(), result = u, count = 1,
+				fp = self.folderPath(), fpL = fp.length;
+		function iter(obj, i) {
+		console.log(fpL, i);
+			if (i < fpL) {
+				if (obj.children && obj.children.length) {
+					for (var x = 0; x < obj.children.length; x++) {
+						if (obj.children[x].folder === fp[i] && typeof (obj.children[x].folder)!== undefined) { 
+			console.log(obj.children[x].folder === fp[i] ? ko.toJSON(obj.children[x]) + ' -' + i + fp[i] : '');
+							return iter(obj.children[x], i++); }
+					}
+				}
+			} else { console.log(obj);
+				return obj; }
+		}
+		console.log(iter(u, 1));
+		return u.folder ? iter(u, count) : {children: []};
+	});
+	this.cancel = function() { self.selected(''); self.active(false); }
+	this.set = function() { self.origin.value(self.selected()); self.active(false); };
+	ko.utils.registerEventHandler(document.getElementById('image-browser'), 'click', function(e) { 
+		var target = e.target || e.srcElement;
+		if (target.parentNode.className.match('image-browser'))
+			target = target.parentNode;
+		if (target.className && target.className.match('image-browser-image')) {
+			target = target.getElementsByTagName('img')[0];
+			if (target.getAttribute('src'))
+				self.selected(target.getAttribute('src'));
+		}
+	});
 }
 function initVM() {
 	var ajaxData = {};
@@ -726,11 +763,12 @@ function initVM() {
 	});
 	function getLangFile() {
 		var parsed = window.i18nJSON;	
-				if (!ajaxData.i18n)
-					ajaxData.i18n = {};
-				for (var str in parsed.strings) {
-					ajaxData.i18n[str] = parsed.strings[str];
-				}
+			if (!ajaxData.i18n)
+				ajaxData.i18n = {};
+			for (var str in parsed.strings) {
+				ajaxData.i18n[str] = parsed.strings[str];
+			}
+			ajaxData.i18n.translation_meta = parsed.meta;
 		getData();
 	}
 	function getData() {
@@ -746,4 +784,5 @@ function initVM() {
 	});
 	}
 }
+ko.punches.enableAll();
 initVM();
