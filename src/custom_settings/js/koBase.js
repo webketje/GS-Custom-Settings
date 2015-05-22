@@ -138,7 +138,7 @@ ko_arrayToText.viewModel = function (params) {
  
 ko_codeInputField = {};
 ko_codeInputField.name = 'code-input';
-ko_codeInputField.template = '<input type="text" style="width: 95%;" data-bind="i18n: {title: tooltip}, ' + 
+ko_codeInputField.template = '<input type="text" style="width: 95%;" data-bind="attr: {title: code}, ' + 
 		'value: display, attr: { \'class\': css },' + 
 		'event: { mouseup: function() { $element.select();},' +
 			'focus: function() { $element.select();},' +
@@ -364,6 +364,7 @@ function getJSONData(from, action, callback) {
 		action: action, 
 		path: url, 
 		requestToken: paths.requestToken, 
+		admindir: GLOBAL.ADMINDIR,
 		id: location.href.match(/id=[\w]*/g)[0].slice(3)}
 	})
 	.done(function(data, status, jqXHR) {
@@ -397,6 +398,7 @@ function setJSONData(from, action, data, callback) {
 		action: action, 
 		path: url, 
 		data: data, 
+		admindir: GLOBAL.ADMINDIR,
 		requestToken: paths.requestToken, 
 		id: location.href.match(/id=[\w]*/g)[0].slice(3)}
 	})

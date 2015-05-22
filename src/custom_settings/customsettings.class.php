@@ -73,7 +73,7 @@ if (!class_exists('customSettings')) {
 				$result[$value['lookup']] = $value;
 			return $result;
 		}
-		
+		public static function adminPath() { return GSADMININCPATH; }
 		/** Updates settings.json files from both plugins and themes
 		 *  ORI stands for origin, DAT for data
 		 *  @param {array} &$datFile - data file in /data/other/custom_settings
@@ -517,12 +517,18 @@ if (!class_exists('customSettings')) {
 			global $LANG, $TEMPLATE, $SITEURL, $mu_active;
 			$tmpl = GSPLUGINPATH . 'custom_settings/tmpl/';
 		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/nav.html'); ?>
+		  <script>
+		    window.hooks = [];
+		    function addHook(fn) {
+		      window.hooks.push(fn);
+		    }
+		  </script>
 		  <div id="custom-rendering-top"><?php exec_action('custom-settings-render-top'); ?></div>
 		  <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/main.html'); ?>
 		  <br>
 		  <input type="hidden" id="i18n-plugin-langs" value="<?php echo function_exists('return_i18n_available_languages') ? str_replace('"', '\'', json_encode(return_i18n_available_languages())) : 'FALSE'; ?>">
 		  <div id="custom-rendering-bottom"><?php exec_action('custom-settings-render-bottom'); ?></div>
-			<input type="button" class="submit" data-bind="click: fn.saveData" value="<?php i18n('BTN_SAVESETTINGS'); ?>"/>
+			<input type="button" class="submit" data-bind="click: fn.saveData" value="<?php i18n('BTN_SAVESETTINGS'); ?>" id="custom-settings-save-btn"/>
 			<span id="custom-buttons">
 				<!-- ko if: $root.data.activeItem() && data.items()[data.activeItem()] && data.items()[data.activeItem()].enableReset -->
 				<input type="button" class="submit" data-bind="click: data.items()[data.activeItem()].settings.resetToDefault, i18n: {value: 'label_reset'} "/>

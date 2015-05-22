@@ -1,4 +1,4 @@
-20/05/2015 - V. 0.4 (Stable)
+20/05/2015 - V. 0.4 (DevChills)
 
 New:
 	- 3 new plugin hooks 'custom-settings-save', 'custom-settings-render-top', and 'custom-settings-render-bottom'
@@ -15,6 +15,7 @@ New:
 Changed:
   - Upgrade from v0.1 no longer supported - to do this, deactivate, download v0.3, activate, then install 0.4
 	- Search filter improved (lower & uppercase)
+	- Code fields now show the bare lookup as title
 	- Tab lookups can now be set manually from the tab toolbar (tag icon)
 	- If gsconfig is set to have sticky sidebar, the toolbar in Edit mode will also be sticky
 	- Tabs may now contain any unicode characters: use at your own risk

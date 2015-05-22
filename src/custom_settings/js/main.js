@@ -1,5 +1,9 @@
 var GLOBAL = GLOBAL || {
 	ADMINLANG: $('#chosen-lang').val().split('_')[0],
+	ADMINDIR: (function() {
+		var l = location.href.slice(0, location.href.lastIndexOf('/')); 
+		return l.slice(l.lastIndexOf('/')+1);
+	}()),
 	PLUGINVER: $('#plugin-version').val(),
 	I18NLANGS: (function() {
 		var test = $('#i18n-plugin-langs').val().replace(/\'/g, '"');
@@ -171,11 +175,11 @@ function ViewModel(data) {
 				unwrappedProp = ko.utils.unwrapObservable(setting[prop]);
 				if (!inArray(prop, ignoredItems)) {
 					if ((setting.hasValue() && typeof unwrappedProp !== 'function') || setting.type() === 'section-title') {
-						console.log()
 						if ((prop === 'options' && unwrappedProp.length) || (prop === 'values' && setting['i18n']() === true)) {
 							cleanSetting[prop] = ko.utils.arrayMap(unwrappedProp, function(setting) { return setting && setting.val ? setting.val : false});
 						} else if ((prop === 'i18n' && unwrappedProp === true) || !/values|i18n/.test(prop)){
-							cleanSetting[prop] = unwrappedProp;}
+							cleanSetting[prop] = unwrappedProp;
+						}
 					}
 				}
 			}	
@@ -216,6 +220,16 @@ function ViewModel(data) {
 			}
 		});
 		return result;
+	};
+	this.returnSetting = function(tab, setting) {
+		if (self.data.items().length) {
+			var t = ko.utils.arrayFirst(self.data.items(), function(item) { return item.lookup() === tab });
+			if (t && t.settings.items().length) {
+				var s = ko.utils.arrayFirst(t.settings.items(), function(item) { return item.lookup() === setting });
+				if (s)
+					return s;
+			}
+		}
 	};
 	// Export settings for backup and cross-site reuse
 	// Essentially for webmasters
@@ -520,11 +534,11 @@ function Tab(opts) {
 	this.settings = new List({ data: opts && opts.settings || [], model: Setting, keys: true});
 	// TODO: find a better way to set default label & lookup
 	var setDefs = setInterval(function() {
-		if (window.VM && window.VM.i18n) {
+		if (window.customSettings && window.customSettings.i18n) {
 		  self.settings.defaults = {
-		    label: window.VM.i18n['def_setting_label'] ,
-		    lookup: window.VM.i18n['def_setting_lookup'],
-		    langs: window.VM.allLangs,
+		    label: window.customSettings.i18n['def_setting_label'] ,
+		    lookup: window.customSettings.i18n['def_setting_lookup'],
+		    langs: window.customSettings.allLangs,
 		    value: '' }
 		  clearInterval(setDefs);
 		 }
@@ -533,7 +547,7 @@ function Tab(opts) {
 		var settings = self.settings.items();
 		if (settings.length && self.enableReset) {
 			for (var i = 0; i < settings.length; i++) {
-				if (settings[i].value && settings[i]['default']) // make sure to exclude section titles
+				if (settings[i].hasOwnProperty('value') && settings[i].hasOwnProperty('default')) // make sure to exclude section titles
 					settings[i].value(settings[i]['default']);
 			}
 		}
@@ -631,7 +645,7 @@ var Setting = function(opts) {
 	// state helpers
 	this.i18n = ko.observable(opts && opts.i18n || false).extend({rateLimit: 100});
 	this.i18n.subscribe(function(newVal) {
-		for (var i = self.values().length; i < VM.allLangs.length; i++) {
+		for (var i = self.values().length; i < customSettings.allLangs.length; i++) {
 			self.values.push({val: ko.observable(self.value())});
 		}
 	});
@@ -751,7 +765,7 @@ function ImageBrowser(context) {
 		}
 	});
 }
-function initVM() {
+function initcustomSettings() {
 	var ajaxData = {};
 	getJSONData(null, 'getI18NFile', function(data, status, error) {
 		if (data === null)  {
@@ -778,11 +792,17 @@ function initVM() {
 		} else {
 			var parsed = parseJSON(data);
 			ajaxData.rawData = parsed;
-			window.VM = new ViewModel(ajaxData);
-			ko.applyBindings(VM, document.body);
+			window.customSettings = window.GSCS = new ViewModel(ajaxData);
+			ko.applyBindings(customSettings, document.body);
+			if (window.hooks && window.hooks.length) {
+				for (var i = 0; i < window.hooks.length; i++) {
+					if (typeof window.hooks[i] === 'function')
+						window.hooks[i]();
+				}
+			}
 		}
 	});
 	}
 }
 ko.punches.enableAll();
-initVM();
+initcustomSettings();

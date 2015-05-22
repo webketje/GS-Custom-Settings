@@ -15,12 +15,13 @@
 .ko-main input[type="text"]:focus, .ko-main select:focus, .ko-main textarea:focus {outline: 1px solid #BBB !important;}
 .ko-main input[type="text"]::-ms-clear, #sidebar input[type="text"]::-ms-clear { display: none; margin-right: 3000px;}
 .ko-main label, label { display: inline-block !important; font-size: 1.1em; margin-bottom: 5px;  }
-.ko-main select { padding: 0px;}
+.ko-main.manage select { padding: 0px;  max-width: 141px; }
+.ko-main.edit textarea {resize: none; }
 /* fix for IE9- no default margin on inputs vs labels */
 .ko-main input[type="radio"], .ko-main button.icon-button { margin-left: 5px; } 
 /* detail display classes */
 .ko-code, .ko-input { border-radius: 3px; }
-.ko-main textarea { resize: none; width: 100%;	font-size: 1em;	font-family: inherit; height: 62px; overflow: auto; line-height: 1.2em; box-sizing: content-box;}
+.ko-main textarea { resize: vertical; width: 100%;	font-size: 1em;	font-family: inherit; height: 62px; overflow: auto; line-height: 1.2em; box-sizing: content-box;}
 .ko-list>*, .ko-list-item { margin-bottom: 0px; position: relative; overflow: hidden; border-bottom: 1px solid #ccc;   }
 .ko-list.manage >*, .ko-list-item { padding: 5px 0; width: 100%;}
 .ko-main input[type="text"].ko-code, .ko-code { 
@@ -76,6 +77,15 @@
 #image-browser a:target * { display: block; }
 .image-browser-folder {border-bottom: 1px solid #c8c8c8;}
 .image-browser-image {border: 1px solid #c8c8c8; margin-right: 5px; padding: 5px; float: left; max-width: 96px; max-height: 96px; position: relative; text-align: center;}
+.image-browser-image span {  position: absolute;
+  padding: 5px;
+  background: rgba(255,255,255,.8);
+  right: 5px;
+  bottom: 9.5px;
+  line-height: .8em;
+  font-size: 11px;
+  visibility: hidden;}
+.image-browser-image:hover span { visibility: visible; }
 .image-browser-image img { max-width: 100%; max-height: 96px; }
 .ko-toolbar button:not([disabled]):hover i { color: #CF3805; }
 .ko-toolbar { background: #eee; padding: 2px 4px; border-radius: 3px; overflow: auto; height: 20px;}
@@ -90,7 +100,6 @@
 .ko-visible { display: block; }
 .ko-visible-target:target { display: block; }
 .ko-text-right { text-align: right;} .ko-text-left { text-align: left;} .ko-text-center {text-align: center;}
-.ko-section-title { margin-top: 10px; margin-bottom: 10px; font-size: 20px; text-decoration:underline;}
 /* width classes */
 .ko-1-1,.ko-2-2,.ko-3-3,.ko-4-4,.ko-5-5,.ko-6-6,.ko-8-8 {width: 100%;}
 .ko-1-2,.ko-2-4,.ko-3-6,.ko-4-8 {width:49.5%;}
@@ -149,7 +158,7 @@ button.icon-button {
 	outline: none;
 	padding: 0;
 }
-#notification-manager {	position: fixed; z-index: 50;	top: 0px;	margin-left: auto; width: 960px; }
+#notification-manager {	position: fixed; z-index: 1001;	top: 0px;	margin-left: auto; width: 960px; }
 .ko-btn.mini { padding: 1px 5px; }
 table.highlight {	max-width: 100%; table-layout: fixed; }
 .ko-side-toolbar {
@@ -184,34 +193,19 @@ top: 5px;
 left: 25px;
 position: absolute;
 background: transparent;	border: none;	outline: none; color: inherit; font-weight: bold;	font-size: 12px; width: 120px; }
-
+.ko-lang-box a { text-transform: uppercase;}
 .ko-side-item.current .ko-side-input, .ko-side-input:focus { color: white;}
 .ko-main .manage input[type="radio"], .ko-main .manage input[type="checkbox"] { vertical-align: middle; }
 .ko-data.manage .ko-setting {	min-height: 25px;	height: initial; padding-bottom: 0; }
 .ko-data.manage .ko-setting textarea { margin-top: -10px; }
 .ko-data.manage .ko-setting input[type="text"] {	margin-top: -10px;}
 p.ko-setting-descr { float: left; margin: 0; font-style: italic; color: #666;}
+p.ko-setting-descr code {background: #eee; padding: 2px 4px;}
 .ko-data.edit .ko-setting textarea { resize: none; overflow-y: auto; overflow-x: none;}
 .ko-data .ko-setting div { margin-bottom: 5px; overflow: visible;}
 .ko-data .ko-setting .ko-option label { display: inline-block; font-weight: normal; font-size: 1em;}
-#export-tab {
-    width: 100%;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    margin-right: -7px;
-    border-bottom-right-radius: 3px;
-    border-top-right-radius: 3px;
-    font-size: 1.375em;
-    margin-top: auto;
-    height: 1.5em;
-    border: medium none;
-    background: none repeat scroll 0% 0% transparent;
-    outline: medium none;
-    opacity: 0;
-    cursor: pointer;
-    background: #FFF;
-    text-transform: none;
-    cursor: default;
-    border: initial;
-}
+#export-tab { width: 100%; position: absolute; top: 0px; left: 0px; margin-right: -7px; border-bottom-right-radius: 3px; border-top-right-radius: 3px; font-size: 1.375em;margin-top: auto;height: 1.5em;border: medium none;background: none repeat scroll 0% 0% transparent;outline: medium none; opacity: 0;cursor: pointer;background: #FFF;text-transform: none;cursor: default; border: initial; }
+/* section titles */
+h3.ko-section-title { margin-top: 10px; margin-bottom: 10px; font-style: normal; }
+/* text/ textarea multilang box (manage mode) */
+div.ko-lang a {margin-right: 2px; text-transform: uppercase; font-size: .9em; text-decoration: none; position: relative;}

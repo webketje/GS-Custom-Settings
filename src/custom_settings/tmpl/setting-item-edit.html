@@ -23,8 +23,7 @@
 				<input style="width: 140px;" class="ko-3-5" type="text" 
 					value="{{ label }}" 
 					name="{{ names.label }}" 
-					id="{{ names.label }}"
-					data-bind="event: {change: $root.notif.lookup_change }">
+					id="{{ names.label }}">
 			</span>
 			<!-- Setting lookup field -->
 			<span class="ko-1-2" style="display: inline-block;">
@@ -43,8 +42,7 @@
 			data-bind="component: {name: 'code-input', params: {
 				prefix: '\<\?php get_setting(\'',
 				suffix: '\'); ?>', 
-				data: $parents[1].lookup() + '\',\'' + lookup(), 
-				tooltip: 'code_tip'}}">
+				data: $parents[1].lookup() + '\',\'' + lookup()}}">
 		</div>
 	</div>
 	<!-- Setting folded row container -->

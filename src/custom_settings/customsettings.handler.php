@@ -1,9 +1,9 @@
-<?php if (isset($_REQUEST) && isset($_REQUEST['id']) && isset($_REQUEST['requestToken'])) {
+<?php if (isset($_REQUEST) && isset($_REQUEST['id']) && isset($_REQUEST['requestToken']) && isset($_REQUEST['admindir'])) {
 	
-		require_once('../../admin/inc/common.php');
+		require_once('../../' . $_REQUEST['admindir'] .'/inc/common.php');
 		require_once('filehandler.class.php');
 		require_once('customsettings.class.php');
-		require_once('../../admin/inc/plugin_functions.php');
+		require_once('../../' . $_REQUEST['admindir'] .'/inc/plugin_functions.php');
 		
 		global $USR, $i18n, $custom_settings, $custom_settings_dictionary;
 		
