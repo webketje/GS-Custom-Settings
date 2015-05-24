@@ -1,75 +1,100 @@
+/* general */ 
+.ko-main {	position: relative; }
+.ko-main label, label { font-size: 1.1em; margin-bottom: 5px;  }
+.edit>div:nth-child(2), .ko-toolbar { outline: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+.ko-main input[type="text"], .ko-main select, .ko-main textarea, #setting-search input[type="text"] { padding: 2px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px;	-o-border-radius: 3px; border-radius: 3px;	border: 1px solid #ddd; outline: none; max-width: 95%; }
+.ko-main input[type="text"]:focus, .ko-main select:focus, .ko-main textarea:focus {outline: 1px solid #BBB !important;}
+/* fix for IE9- no default margin on inputs vs labels + ms-clear */
+.ko-main input[type="text"]::-ms-clear, #sidebar input[type="text"]::-ms-clear { display: none; margin-right: 3000px;}
+.ko-main input[type="radio"], .ko-main button.icon-button { margin-left: 5px; } 
+
+/* toolbars */
+.ko-toolbar button { display: block;float: left; padding: 0px;background: transparent;margin: 0px;font-size: 12px; width: 11px;height: 100%;border: none; outline: none; vertical-align: middle; cursor: default; margin-right: 2px; }
+.ko-toolbar button:not([disabled]):hover i { color: #CF3805; }
+.ko-toolbar { background: #eee; padding: 2px 4px; border-radius: 3px; overflow: auto; height: 20px;}
+#ko-main-toolbar { margin: 10px 0; }
+#ko-main-toolbar>span {float: right; margin-left: 5px;}
+
+/* settings */
+.setting { margin-bottom: 0px; position: relative; overflow: hidden; border-bottom: 1px solid #F4F4F4; }
+.setting textarea { resize: vertical; width: 100%;	font-size: 1em;	font-family: inherit; overflow: auto; line-height: 1.2em; box-sizing: content-box;}
+.manage select { padding: 0px;  max-width: 141px; }
+.edit .setting .ko-toolbar { margin-right: 5px; float: left; overflow: auto; }
+.edit .setting.ko-h-full {max-height: 600px; }
+.edit .setting { max-height: 35px; transition: all .2s ease-in-out; -moz-transition: all .2s ease-in-out; -webkit-transition: all .2s ease-in-out; -o-transition: all .2s ease-in-out; }
+.edit .setting select { text-transform: capitalize;}
+.edit .setting.active { background: #FFA98D; border: 1px solid #CF3805; border-left-width: 0px;border-right-width: 0px;}
+.edit .setting div:first-child { margin-top: 3px; }
+.edit .setting>div:nth-child(2) { width: 33%; float: left; }
+.edit .setting>div:nth-child(2) label { width: 39%; }
+.edit .setting>div:nth-child(2) input[type="text"], .edit .setting>div:nth-child(2) select { width: 56%; }
+.edit .setting>div:first-child, .manage .setting { padding: 5px 0; }
+.edit .setting>div:first-child input.ko-code { width: 95%;  margin-left: -1px; }
+.setting-i18n label, .setting-value label {box-sizing: border-box;}
+.setting-i18n label, .setting-value label, .setting-bar, .setting-bar>span {display: inline-block; }
+.setting-bar { width: 66%; }
+.setting-bar span { width: 49.5%; }
+.setting-bar input { min-width: 140px; width: 59%; }
+.setting-options, .setting-options div, .setting-value, .setting-descr, .setting-type, .setting * { box-sizing: border-box; }
+.setting-options, .setting.textarea .setting-value { padding: 5px; float: left;  width: 33.33%; }
+.setting-i18n, .setting.checkbox .setting-value, .setting.fancy-checkbox .setting-value, .setting.switch .setting-value { margin-top: 5px; }
+.edit .setting.section-title .setting-type { margin-bottom: 5px; }
+.edit .setting label, .edit .setting label:after { display: inline-block; }
+.edit .setting label:after  { content: ':'; }
+.manage .setting.fancy-radio button, .setting.fancy-checkbox i, .setting.switch i { margin-top: 5px; }
+.edit .setting + .setting.active { border-bottom: 1px solid #CF3805; border-top: none; }
+.edit .setting:not(.active) + .setting.active { border-top: 1px solid #CF3805; }
+.edit .setting-descr { padding: 5px 0 5px 5px; float: right;  width: 33.33%; }
+.manage .setting>div:first-child { float: left; width:59%; }
+.manage .setting-descr { float: left; margin: 0; font-style: italic; color: #333; width: 100%; }
+.manage .setting-descr code {background: #eee; padding: 2px 4px;}
+.setting div:first-child div:nth-of-type(2) { width:175px; text-align: right; float: right; }
+.setting input[type="text"].ko-code, .ko-code {-moz-border-radius: 3px; -o-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; white-space: nowrap; letter-spacing: -.05em; font-size: .9em; font-family: Consolas, monospace; font-weight: normal;	background: #eee;	padding: 2px 4px;	border-radius: 3px; box-sizing: content-box; }
+.manage .setting div pre.ko-code { margin: 5px 0; color: #666; display: inline-block; visibility: none; left: -2000px; position: absolute; opacity: 0; transition: .2s opacity; }
+.manage .setting:hover div pre { visibility: visible; left: 0; position: relative; opacity: 1; }
+/* section titles */
+.manage .setting.section-title h3 { margin-top: 10px; margin-bottom: 10px; font-style: normal; width: 100%;}
+.manage .setting.section-title h3 i { font-size: .8em;}
+/* text/ textarea multilang box (manage mode) */
+div.ko-lang-box a {margin-right: 2px; text-transform: uppercase; font-size: .9em; text-decoration: none; position: relative;}
+.manage .ko-setting {	min-height: 25px;	height: initial; padding-bottom: 0; }
+.manage .ko-setting textarea { margin-top: -10px; }
+.manage .ko-setting input[type="text"] {	margin-top: -10px;}
+button.icon-button {background: transparent; border: none; outline: none;	padding: 0; }
+.ko-option span { display: inline-block; max-width: 90%; }
+.ko-option input { vertical-align: top; }
+
+/* top nav */
 .invisible-input {width: 100%; position: absolute; top: -50px; left: 0; opacity: 0;}
 .invisible-input-container {overflow: hidden; position: relative;}
 .edit-nav>* { float:right; margin-left: 5px;}
-.ko-main {	position: relative; }
-.active, .ko-drawer.active { background: #FFA98D; border: 1px solid #CF3805; border-left-width: 0px;border-right-width: 0px;}
-.no-select { outline: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-/* structural display classes */ 
-.ko-box, .ko-box-padding { box-sizing: border-box; }
-.ko-box * {box-sizing: border-box;}
-.ko-box-padding { padding: 5px; }
-.ko-box-padding:last-child { padding-right: 0;}
-.ko-box-padding:first-child { padding-left: 0; }
-/* TODO: adjust padding with line-height */
-.ko-main input[type="text"], .ko-main select, .ko-main textarea, #setting-search input[type="text"] { padding: 2px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px;	-o-border-radius: 3px; border-radius: 3px;	border: 1px solid #ddd; outline: none; max-width: 95%; }
-.ko-main input[type="text"]:focus, .ko-main select:focus, .ko-main textarea:focus {outline: 1px solid #BBB !important;}
-.ko-main input[type="text"]::-ms-clear, #sidebar input[type="text"]::-ms-clear { display: none; margin-right: 3000px;}
-.ko-main label, label { display: inline-block !important; font-size: 1.1em; margin-bottom: 5px;  }
-.ko-main.manage select { padding: 0px;  max-width: 141px; }
-.ko-main.edit textarea {resize: none; }
-/* fix for IE9- no default margin on inputs vs labels */
-.ko-main input[type="radio"], .ko-main button.icon-button { margin-left: 5px; } 
-/* detail display classes */
-.ko-code, .ko-input { border-radius: 3px; }
-.ko-main textarea { resize: vertical; width: 100%;	font-size: 1em;	font-family: inherit; height: 62px; overflow: auto; line-height: 1.2em; box-sizing: content-box;}
-.ko-list>*, .ko-list-item { margin-bottom: 0px; position: relative; overflow: hidden; border-bottom: 1px solid #ccc;   }
-.ko-list.manage >*, .ko-list-item { padding: 5px 0; width: 100%;}
-.ko-main input[type="text"].ko-code, .ko-code { 
-	font-size: .9em; 
-	font-family: Consolas, monospace; 
-	font-weight: normal;	
-	background: #eee;	
-	padding: 2px 4px;	
-	border-radius: 3px;
-	box-sizing: content-box;
-}
-.ko-toolbar button {
-    display: block;
-    float: left;
-    padding: 0px;
-    background: transparent;
-    margin: 0px;
-    font-size: 12px;
-    width: 11px;
-    height: 100%;
-    border: none;
-    outline: none;
-    vertical-align: middle;
-    cursor: default;
-    margin-right: 2px;
-}
-#image-browser {
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #c8c8c8;
-  margin: 0 0 30px 0;
-  box-shadow: rgba(0,0,0, 0.06) 0px 0px 4px;
-  -moz-box-shadow: rgba(0,0,0, 0.06) 0px 0px 4px;
-  -webkit-box-shadow: rgba(0,0,0, 0.06) 0px 0px 4px;
-  position: fixed;
-  width: 600px;
-  top: 20%;
-  left: 50%;
-  margin-left: -300px;
-  z-index: 999;
-}
-#setting-search {
-  float: right;
-  top: -28px;
-  position: relative;
-  text-align: right;
-  margin-bottom: -30px;
-}
+.edit-nav a:first-child { padding-left: 5px; padding-right: 5px; }
+#plugin-info-dg a:last-child { marin-right: 50px; }
+#setting-search { float: right; top: -28px; position: relative; text-align: right; margin-bottom: -30px; }
+#setting-search i.fa-search { color: gray; right: 5px; position: relative; }
+#setting-search input { max-width: 80%; }
+#export-tab { width: 100%; position: absolute; top: 0px; left: 0px; margin-right: -7px; border-bottom-right-radius: 3px; border-top-right-radius: 3px; font-size: 1.375em;margin-top: auto;height: 1.5em;border: medium none;background: none repeat scroll 0% 0% transparent;outline: medium none; opacity: 0;cursor: pointer;background: #FFF;text-transform: none;cursor: default; border: initial; }
+
+/* sidebar */
+#sidebar .snav li .ko-toolbar { margin-right: 0; position: relative; top: -40px; float: right; }
+#sidebar .snav li h3 { margin-left: 12px; }
+#sidebar .snav li { position: relative; color: #afc5cf;}
+#sidebar .snav li.current { color: white;}
+#sidebar .snav li a:link, #sidebar .snav li a:visited { transition: background-color .2s ease-in-out; -moz-transition: background-color .2s ease-in-out; -webkit-transition: background-color .2s ease-in-out; -o-transition: background-color .2s ease-in-out; }
+#sidebar .snav li.current a { text-shadow: 1px 1px 0px #9F2C04; margin-left: 0px; cursor: default; color: #FFF; background: #CF3805 url('../../../admin/template/images/active.png') center left no-repeat !important; padding-left: 26px; margin-left: 1px; }
+#sidebar .snav li input {top: 5px; left: 25px; position: absolute; background: transparent;	border: none;	outline: none; color: inherit; font-weight: bold;	font-size: 12px; width: 120px; }
+#sidebar .snav li input:focus { color: white;}
+.ko-main .manage input[type="radio"], .ko-main .manage input[type="checkbox"] { vertical-align: middle; }
+
+/* notification manager */
+#notification-manager {	position: fixed; z-index: 1001;	top: 0px;	margin-left: auto; width: 960px; }
+
+/* hide JS loading on page load */
+#maincontent, #sidebar { display: none; }
+.cs-loaded #maincontent, .cs-loaded #sidebar { display: block; }
+
+/* image browser (include in the future) */
+#image-browser { padding: 20px; background: #fff; border: 1px solid #c8c8c8; margin: 0 0 30px 0; box-shadow: rgba(0,0,0, 0.06) 0px 0px 4px; -moz-box-shadow: rgba(0,0,0, 0.06) 0px 0px 4px; -webkit-box-shadow: rgba(0,0,0, 0.06) 0px 0px 4px; position: fixed; width: 600px; top: 20%; left: 50%; margin-left: -300px; z-index: 999; }
 #image-browser ul { list-style-type: none; }
 #image-browser-cmd { position: absolute; right: 20px; bottom: 20px; text-align: right; }
 #image-browser li { margin-bottom: 5px;}
@@ -77,135 +102,6 @@
 #image-browser a:target * { display: block; }
 .image-browser-folder {border-bottom: 1px solid #c8c8c8;}
 .image-browser-image {border: 1px solid #c8c8c8; margin-right: 5px; padding: 5px; float: left; max-width: 96px; max-height: 96px; position: relative; text-align: center;}
-.image-browser-image span {  position: absolute;
-  padding: 5px;
-  background: rgba(255,255,255,.8);
-  right: 5px;
-  bottom: 9.5px;
-  line-height: .8em;
-  font-size: 11px;
-  visibility: hidden;}
+.image-browser-image span { position: absolute; padding: 5px; background: rgba(255,255,255,.8); right: 5px; bottom: 9.5px; line-height: .8em; font-size: 11px; visibility: hidden;}
 .image-browser-image:hover span { visibility: visible; }
 .image-browser-image img { max-width: 100%; max-height: 96px; }
-.ko-toolbar button:not([disabled]):hover i { color: #CF3805; }
-.ko-toolbar { background: #eee; padding: 2px 4px; border-radius: 3px; overflow: auto; height: 20px;}
-.ko-main .ko-box label:after, .ko-main .ko-box-padding label:after  { content: ':'; display: inline-block; }
-.ko-drawer .ko-toolbar {margin-right: 5px; float: left; overflow: auto; }
-.ko-drawer { border-bottom: 1px solid #ccc; transition: all .2s ease-in-out; -moz-transition: all .2s ease-in-out; -webkit-transition: all .2s ease-in-out; -o-transition: all .2s ease-in-out; }
-.ko-drawer select { text-transform: capitalize;}
-/* utility classes */
-.ko-float-left { float: left; }
-.ko-float-right { float: right; }
-.ko-hidden { display: none; }
-.ko-visible { display: block; }
-.ko-visible-target:target { display: block; }
-.ko-text-right { text-align: right;} .ko-text-left { text-align: left;} .ko-text-center {text-align: center;}
-/* width classes */
-.ko-1-1,.ko-2-2,.ko-3-3,.ko-4-4,.ko-5-5,.ko-6-6,.ko-8-8 {width: 100%;}
-.ko-1-2,.ko-2-4,.ko-3-6,.ko-4-8 {width:49.5%;}
-.ko-1-3,.ko-2-6 {width:33.33%;}
-.ko-2-3,.ko-4-6 {width:66.66%;}
-.ko-1-4,.ko-2-8 {width:25%;}
-.ko-3-4,.ko-6-8 {width:75%;}
-.ko-1-6 {width:16.66%;}
-.ko-5-6 {width:83.33%;}
-.ko-1-5 {width:20% !important;} .ko-2-5 {width:39%;} .ko-3-5 {width:59%;} .ko-4-5 {width:80%;} 
-.ko-1-8 {width:12.5%;}
-.ko-3-8 {width:37.5%;}
-.ko-7-8 {width:82.5%;}
-.ko-clearfix { clear: both; float: none; width: 100%; }
-/* height classes */
-.ko-h-25 {height:25px;} .ko-h-35 {height: 35px;} .ko-h-50 {height:50px;} .ko-h-75 {height:75px;} .ko-h-125 {height:125px;} .ko-h-135 {height: 135px;}
-.ko-h-100 {height:100px;} .ko-h-150 {height:150px} .ko-h-200 {height:200px;} .ko-h-250 {height:250px;} .ko-h-300 {height: 300px;} .ko-h-20 {height: 20px;}
-/* margin classes */
-.ko-mb-5 {margin-bottom:5px;} .ko-mb-10 {margin-bottom:10px;} .ko-mb-15 {margin-bottom:15px;} .ko-mb-20 {margin-bottom:20px;}
-.ko-ml-5 {margin-left:5px;} .ko-ml-10 {margin-left:10px;} .ko-ml-15 {margin-left:15px;} .ko-ml-20 {margin-left:20px;}
-.ko-mr-5 {margin-right:5px;} .ko-mr-10 {margin-right:10px;} .ko-mr-15 {margin-right:15px;} .ko-mr-20 {margin-right:20px;}
-.ko-mt-5 {margin-top:5px;} .ko-mt-10 {margin-top:10px;} .ko-mt-15 {margin-top:15px;} .ko-mt-20 {margin-top:20px;}
-.ko-pad-5 {padding: 5px;} .ko-pad-10 {padding: 10px;}
-.ko-btn {
-	line-height: 14px !important;
-	background-color: #182227;
-	color: #ccc;
-	font-weight: bold;
-	text-decoration: none;
-	text-shadow: 1px 1px 0px rgba(0,0,0,.2);
-	transition: all .10s ease-in-out;
-	-webkit-transition: all .10s ease-in-out;
-	border: 0;
-	cursor: pointer;
-	font-size: 10px;
-	text-transform: uppercase;
-	display: block;
-	padding: 3px 10px;
-	border-radius: 3px;
-	-moz-border-radius: 3px;
-	-webkit-border-radius: 3px;
-	background-repeat: no-repeat;
-	background-position: 94% center;
-}
-.ko-btn:hover {
-	background-color: #CF3805;
-	color: #FFF;
-	font-weight: bold;
-	text-decoration: none;
-	line-height: 14px !important;
-	text-shadow: 1px 1px 0px rgba(0,0,0,.2);
-}
-button.icon-button {
-	background: transparent;
-	border: none;
-	outline: none;
-	padding: 0;
-}
-#notification-manager {	position: fixed; z-index: 1001;	top: 0px;	margin-left: auto; width: 960px; }
-.ko-btn.mini { padding: 1px 5px; }
-table.highlight {	max-width: 100%; table-layout: fixed; }
-.ko-side-toolbar {
-	float: right;
-	color: white;
-	margin-right: -10px;
-	cursor: default;
-	opacity: 0;
-	transition: .3s all;
-	-webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-.ko-template { display: none; }
-#sidebar .snav li { position: relative; color: #afc5cf;}
-#sidebar .snav li.current { color: white;}
-#sidebar .snav li a:link, #sidebar .snav li a:visited { transition: background-color .2s ease-in-out; -moz-transition: background-color .2s ease-in-out; -webkit-transition: background-color .2s ease-in-out; -o-transition: background-color .2s ease-in-out; }
-#sidebar .snav li.ko-side-item.current, #sidebar .snav li.current a {
-text-shadow: 1px 1px 0px #9F2C04;
-margin-left: 0px;
-cursor: default;
-color: #FFF;
-background: #CF3805 url('../../../admin/template/images/active.png') center left no-repeat !important;
-padding-left: 26px;
-margin-left: 1px;
-}
-.ko-side-input { 
-top: 5px;
-left: 25px;
-position: absolute;
-background: transparent;	border: none;	outline: none; color: inherit; font-weight: bold;	font-size: 12px; width: 120px; }
-.ko-lang-box a { text-transform: uppercase;}
-.ko-side-item.current .ko-side-input, .ko-side-input:focus { color: white;}
-.ko-main .manage input[type="radio"], .ko-main .manage input[type="checkbox"] { vertical-align: middle; }
-.ko-data.manage .ko-setting {	min-height: 25px;	height: initial; padding-bottom: 0; }
-.ko-data.manage .ko-setting textarea { margin-top: -10px; }
-.ko-data.manage .ko-setting input[type="text"] {	margin-top: -10px;}
-p.ko-setting-descr { float: left; margin: 0; font-style: italic; color: #666;}
-p.ko-setting-descr code {background: #eee; padding: 2px 4px;}
-.ko-data.edit .ko-setting textarea { resize: none; overflow-y: auto; overflow-x: none;}
-.ko-data .ko-setting div { margin-bottom: 5px; overflow: visible;}
-.ko-data .ko-setting .ko-option label { display: inline-block; font-weight: normal; font-size: 1em;}
-#export-tab { width: 100%; position: absolute; top: 0px; left: 0px; margin-right: -7px; border-bottom-right-radius: 3px; border-top-right-radius: 3px; font-size: 1.375em;margin-top: auto;height: 1.5em;border: medium none;background: none repeat scroll 0% 0% transparent;outline: medium none; opacity: 0;cursor: pointer;background: #FFF;text-transform: none;cursor: default; border: initial; }
-/* section titles */
-h3.ko-section-title { margin-top: 10px; margin-bottom: 10px; font-style: normal; }
-/* text/ textarea multilang box (manage mode) */
-div.ko-lang a {margin-right: 2px; text-transform: uppercase; font-size: .9em; text-decoration: none; position: relative;}

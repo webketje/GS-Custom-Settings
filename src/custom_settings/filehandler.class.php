@@ -24,121 +24,82 @@ if (!class_exists('fileUtils')) {
 				return $array;
 		}
 		/**
-		 *  @param {string} $path - Path to retrieve a file from
-		 *  @param {array} $subpath - Path from file root to JSON property/ index
-		 *  @param {boolean} $debug - If true, echos output to page for debug purposes
-		 *  return JSON file/ property in JSON file
-		 */
-	  public static function getJSON($path, $subpath=NULL, $echo=FALSE) 
-	  {
-	    if (file_exists($path)) {
-	    $contents = file_get_contents($path);
-	    $output = json_decode($contents, TRUE);
-	    $subpath = self::splitPathArray($subpath); 
-	      // get JSON subpath
-	      if ($subpath && is_array($subpath)) {
-		      $i = 0;
-		      while (isset($subpath[$i])) {
-		        // return false if property/index doesn't exist
-		        if (!isset($output[$subpath[$i]])) {
-		          $output = FALSE;
-		          break;
-		        }
-		        $output = $output[$subpath[$i]]; 
-		        $i++;
-		      }
-	      }
-	      // return/output
-		    if ($echo === FALSE)
-		      return $output;
-		    elseif ($echo === TRUE)
-		      echo $output;
-	    } 
-	  }
-		/**
-		 *  (If last 'path' item is -1, the item will be pushed into an array)
-		 *  @param $data - Any type of data to set (array, assoc array, string, number, boolean)
-		 *  @param {string} $path - Path to retrieve a file from
-		 *  @param {array} $subpath - Path from JSON file root to JSON property/ index
-		 *  @param {boolean} $debug - If true, prints the contents normally outputted to the JSON file
-		 *  return saved JSON output
-		 */
-	  public static function setJSON($data, $path, $subpath=NULL, $debug=FALSE) 
-	  {
-	    if (file_exists($path)) {
-	      $contents = file_get_contents($path);
-	      $output = json_decode($contents, TRUE);
-	    } else {
-		    $output = array();
-		  }
-	    $subpath = self::splitPathArray($subpath); 
-	    if ($subpath && is_array($subpath)) {
-		    $i = 0;
-		    $currentPath = &$output;
-		    // this was kind of complicated to figure out =/
-				while(isset($subpath[$i])) {
-					if ($subpath[$i] !== -1) {
-						if (!isset($currentPath[$subpath[$i]]))
-							$currentPath[$subpath[$i]] = array();
-						$currentPath = &$currentPath[$subpath[$i]];
-					} elseif (is_array($currentPath)) {
-						$currentPath = &$currentPath[count($currentPath)]; }
-					$i++;
-				}
-				$currentPath = $data;
-		  }
-		  $output = self::indentJSON(json_encode($output));
-		  if ($debug)
-	      print_r($output);
-	    else 
-	      file_put_contents($path, $output);
-	  }
-		// TODO: log change: Added indentJSON function
-		/**
 		* Indents a flat JSON string to make it more human-readable.
-		* Credits to http://www.daveperrett.com/articles/2008/03/11/format-json-with-php/, Dimitri Gryanko (comments)
 		* @param string $json The original JSON string to process.
 		* @return string Indented version of the original JSON string.
 		*/
 		public static function indentJSON($json)
 		{
-		$result = '';
-		$pos = 0;
-		$strLen = strlen($json);
-		$indentStr = "\t";
-		$newLine = "\n";
-		
-		for ($i = 0; $i < $strLen; $i++) {
-			// Grab the next character in the string.
-			$char = $json[$i];
-			// Are we inside a quoted string?
-			if ($char == '"') {
-				// search for the end of the string (keeping in mind of the escape sequences)
-				if (!preg_match('`"(\\\\\\\\|\\\\"|.)*?"`s', $json, $m, null, $i))
-					return $json;
-				// add extracted string to the result and move ahead
-				$result .= $m[0];
-				$i += strLen($m[0]) - 1;
-				continue;
-			}
-			else if ($char == '}' || $char == ']') {
-				$result .= $newLine;
-				$pos --;
-				$result .= str_repeat($indentStr, $pos);
-			}
-			// Add the character to the result string.
-			$result .= $char;
-			// If the last character was the beginning of an element,
-			// output a new line and indent the next line.
-			if ($char == ',' || $char == '{' || $char == '[') {
-				$result .= $newLine;
-				if ($char == '{' || $char == '[') {
-					$pos ++;
-				}
-				$result .= str_repeat($indentStr, $pos);
-			}
-		}
-		return $result;
+		if (!is_string($json)) {
+	    $json = json_encode($json);
+	  }
+	  $result      = '';
+	  $pos         = 0;               // indentation level
+	  $strLen      = strlen($json);
+	  $indentStr   = "\t";
+	  $newLine     = "\n";
+	  $prevChar    = '';
+	  $outOfQuotes = true;
+	  for ($i = 0; $i < $strLen; $i++) {
+	    // Speedup: copy blocks of input which don't matter re string detection and formatting.
+	    $copyLen = strcspn($json, $outOfQuotes ? " \t\r\n\",:[{}]" : "\\\"", $i);
+	    if ($copyLen >= 1) {
+	      $copyStr = substr($json, $i, $copyLen);
+	      // Also reset the tracker for escapes: we won't be hitting any right now
+	      // and the next round is the first time an 'escape' character can be seen again at the input.
+	      $prevChar = '';
+	      $result .= $copyStr;
+	      $i += $copyLen - 1;      // correct for the for(;;) loop
+	      continue;
+	    }
+	    
+	    // Grab the next character in the string
+	    $char = substr($json, $i, 1);
+	    
+	    // Are we inside a quoted string encountering an escape sequence?
+	    if (!$outOfQuotes && $prevChar === '\\') {
+	      // Add the escaped character to the result string and ignore it for the string enter/exit detection:
+	      $result .= $char;
+	      $prevChar = '';
+	      continue;
+	    }
+	    // Are we entering/exiting a quoted string?
+	    if ($char === '"' && $prevChar !== '\\') {
+	      $outOfQuotes = !$outOfQuotes;
+	    }
+	    // If this character is the end of an element,
+	    // output a new line and indent the next line
+	    else if ($outOfQuotes && ($char === '}' || $char === ']')) {
+	      $result .= $newLine;
+	      $pos--;
+	      for ($j = 0; $j < $pos; $j++) {
+	        $result .= $indentStr;
+	      }
+	    }
+	    // eat all non-essential whitespace in the input as we do our own here and it would only mess up our process
+	    else if ($outOfQuotes && false !== strpos(" \t\r\n", $char)) {
+	      continue;
+	    }
+	    // Add the character to the result string
+	    $result .= $char;
+	    // always add a space after a field colon:
+	    if ($outOfQuotes && $char === ':') {
+	      $result .= ' ';
+	    }
+	    // If the last character was the beginning of an element,
+	    // output a new line and indent the next line
+	    else if ($outOfQuotes && ($char === ',' || $char === '{' || $char === '[')) {
+	      $result .= $newLine;
+	      if ($char === '{' || $char === '[') {
+	        $pos++;
+	      }
+	      for ($j = 0; $j < $pos; $j++) {
+	        $result .= $indentStr;
+	      }
+	    }
+	    $prevChar = $char;
+	  }
+	  return $result;
 		}
 	}
 }

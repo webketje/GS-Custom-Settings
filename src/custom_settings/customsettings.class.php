@@ -4,7 +4,7 @@ if (!class_exists('customSettings')) {
 	class customSettings {
 	
 		private static $defaultJSON = '{"site": []}';
-		public static $version = '0.4';
+		public static $version = '0.5';
 		
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
@@ -90,6 +90,8 @@ if (!class_exists('customSettings')) {
 			// if the version is older than the one included with the theme or plugin
 			if (isset($vOri) && (!isset($vDat) || $v2 > $v1)) {
 				$vDat = $vOri;
+				if (function_exists('delete_cache')) 
+					delete_cache();
 				// map both plugin/ theme and data file to lookup-based key arrays
 				$oriS = self::mapToKeys($oriFile['settings']);
 				$datS = self::mapToKeys($datFile['settings']);
@@ -184,7 +186,7 @@ if (!class_exists('customSettings')) {
 					'tab' => array('lookup'=> 'theme_settings', 'type' => 'theme')));
 				
 				if (isset($contents['tab'])) {
-					$tabOptions = array('version','enableReset','enableAccessAll');
+					$tabOptions = array('version','enableReset','enableAccessAll','enableCodeDisplay');
 					foreach ($tabOptions as $opt) {
 						if (isset($contents['tab'][$opt]))
 							$file['theme_settings']['tab'][$opt] = $contents['tab'][$opt];
@@ -275,9 +277,9 @@ if (!class_exists('customSettings')) {
 				unset($tab['tab']['type']);
 				if ($type === 'site')	array_push($siteData['site'], $tab);
 				if ($type === 'plugin')	$path = str_replace('~~~', $tab['tab']['lookup'], $path);
-				if ($type !== 'site')	file_put_contents($path, fileUtils::indentJSON(json_encode($tab)));
+				if ($type !== 'site')	file_put_contents($path, fileUtils::indentJSON($tab));
 			}
-			file_put_contents($paths['site'], fileUtils::indentJSON(json_encode($siteData)));
+			file_put_contents($paths['site'], fileUtils::indentJSON($siteData));
 		}
 		
 		//////////////////////////////////////////////////////////////////////////
@@ -501,7 +503,7 @@ if (!class_exists('customSettings')) {
 		 */
 		public static function contentFilter($content) {
 			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
-			$regex = '#\(%\s*setting[:=]\s*(.*[\/]*.*)\s*%\)#';
+			$regex = '#\(%\s*setting[:=]\s*(.*?[\/]*.*?)\s*%\)#';
 			$new_content = preg_replace_callback($regex, array('self', 'contentReplaceCallback'), $content);
 			return $new_content;
 		}

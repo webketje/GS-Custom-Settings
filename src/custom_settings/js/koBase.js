@@ -58,12 +58,12 @@ function makePHPSafe(val) {
  
 ko_arrayToText = {};
 ko_arrayToText.name = 'array-to-text';
-ko_arrayToText.template = '<textarea data-bind="value: view, i18n: i18n, attr: attr"></textarea>';
+ko_arrayToText.template = '<textarea data-bind="value: view, i18n: i18n, attr: {rows: rows}"></textarea>';
 
 ko_arrayToText.viewModel = function (params) {
 	var self = this;
   this.data = params.data;
-  this.attr = params.attr || '';
+  this.rows = params.rows || 6;
   this.i18n = params.i18n || '';
   this.view = ko.computed({
     read: function() {
@@ -138,7 +138,7 @@ ko_arrayToText.viewModel = function (params) {
  
 ko_codeInputField = {};
 ko_codeInputField.name = 'code-input';
-ko_codeInputField.template = '<input type="text" style="width: 95%;" data-bind="attr: {title: code}, ' + 
+ko_codeInputField.template = '<input type="text" style="width: 95%;" data-bind="attr: {title: tooltip}, ' + 
 		'value: display, attr: { \'class\': css },' + 
 		'event: { mouseup: function() { $element.select();},' +
 			'focus: function() { $element.select();},' +
@@ -394,7 +394,7 @@ function getJSONData(from, action, callback) {
  */
 function setJSONData(from, action, data, callback) {
 	var url = from;
-	$.ajax({ url: paths.handler, type: 'POST', data: {
+	$.ajax({ url: paths.handler, type: 'POST', contentType: 'application/x-www-form-urlencoded;', data: {
 		action: action, 
 		path: url, 
 		data: data, 
@@ -412,7 +412,7 @@ function setJSONData(from, action, data, callback) {
   })
 	.fail(function(jqXHR, status, error) {
 		if (isDebug === true) 
-			console.error('.fail: ' + status + ', in function: ' + action + '\nError: ' + error);
+			console.log(jqXHR);
 		if (callback && typeof callback === 'function') { 
 			callback(null, status, error);
 		}

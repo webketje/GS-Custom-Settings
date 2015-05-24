@@ -153,7 +153,7 @@ function ViewModel(data) {
 		var ignore = {
 			// id & phpFetch included as no longer used, but still in v.0.1
 			'all': ['isHidden','isLocked','isOpen','hasValue','displayInManageMode','lookupOutput', 'names', 'cachedType','activeValue', 'activeLang',
-							'isOptionInput','faIcon','changeInputType','toggle','parentList','display','icon', 'selected', 'descrHTML'],
+							'isOptionInput','faIcon','changeInputType','toggle','parentList','display','icon', 'showHide', 'folded', 'selected', 'descrHTML'],
 			'text': ['options'],
 			'textarea': ['options'],
 			'checkbox': ['options','i18n','values'],
@@ -243,7 +243,6 @@ function ViewModel(data) {
 				lookup = value !== 'site_settings' ? selTab.lookup() : null;
 				fileName = tabType + 'data' + (value !== 'site_settings' ? '_' + selTab.lookup() : '') + '.json',
 				data = value !== 'site_settings' ? self.fn.unmapData([selTab]) : self.fn.unmapData();
-				console.log(data);
 		switch (tabType) {
 			case 'site':
 				fileName = 'data.json';
@@ -258,7 +257,7 @@ function ViewModel(data) {
 			case 'theme':
 				fileName = 'theme_data_' + document.getElementById('site-template').value + '.json';
 				delete data[lookup].tab.type;
-				data = {tab: data[lookup].tab, settings: data[lookup].settings};
+				data = {theme: document.getElementById('site-template').value, settings: data[lookup].settings};
 			break;
 			case 'plugin':
 				fileName = 'plugin_data_' + lookup + '.json';
@@ -297,6 +296,7 @@ function ViewModel(data) {
 				allTabs = self.data.items(), 
 				tabObj = {},
 				sType = (function settingsType() {
+					value = value.indexOf('\\') > -1 ? value.slice(value.lastIndexOf('\\')+1) : value;
 					if (value.match('theme_data')) {
 						return 'theme';
 					} else if (value.match('plugin_data')) {
@@ -322,7 +322,7 @@ function ViewModel(data) {
 			var oldSettings = oldTab.settings.items(),
 					newSettings = newTab.settings,
 					newSettingsDictionary = ko.utils.arrayMap(newSettings, function(setting) { return setting.lookup; }),
-					modifiableProps = ['value','type','descr','access','label','options'];
+					modifiableProps = ['value','type','descr','access','label','options','values'];
 			
 			// first loop over all current settings
 			for (var i = 0; i < oldSettings.length; i++) {
@@ -338,7 +338,7 @@ function ViewModel(data) {
 					for (var prop in oldSettings[i]) {
 						if (inArray(prop, modifiableProps) && ko.unwrap(oldSettings[i][prop]) !== newSettings[currentIndex][prop]) {
 							// all replacable properties are observables, ok to call as function
-							if (prop === 'options' && currentNewItem[prop]) {
+							if (/options|values/.test(prop) && currentNewItem[prop]) {
 								var temp = [];
 								ko.utils.arrayForEach(currentNewItem[prop], function(option, i) {
 									temp.push({val: option, index: i});
@@ -386,7 +386,9 @@ function ViewModel(data) {
 					}
 					switch (sType) {
 						case 'theme':
-							var themeTab = findTab('isTheme', true);
+							var themeTab = findTab('type', 'theme');
+							console.log(themeTab);
+							console.log(result.theme);
 							// only allow importing settings from the current theme
 							if (themeTab && result.theme === document.getElementById('site-template').value)
 								replaceExistingTab(themeTab, result);
@@ -394,6 +396,7 @@ function ViewModel(data) {
 								notify('jsonImport', 'themeMissing');
 						break;
 						case 'tab':
+							console.log(sType);
 							var singleTab = findTab('lookup', result.tab.lookup);
 							if (singleTab)
 								replaceExistingTab(singleTab, result);
@@ -521,7 +524,7 @@ function ViewModel(data) {
 function Tab(opts) {
 	var self = this, cachedLookup = ko.observable(opts.tab.lookup !== makePHPSafe(window.i18nJSON.strings['def_tab_label']) ? opts.tab.lookup : false);
 	this.label = ko.observable(opts.tab.label);
-	var tabOpts = ['version','enableReset','enableAccessAll'];
+	var tabOpts = ['version','enableReset','enableAccessAll','enableCodeDisplay'];
 	for (var j = 0; j < tabOpts.length; j++) {
 		if (typeof opts.tab[tabOpts[j]] !== 'undefined')
 			this[tabOpts[j]] = opts.tab[tabOpts[j]];
@@ -531,7 +534,7 @@ function Tab(opts) {
 		write: function(value) { cachedLookup(makePHPSafe(value)); }
 	});
 	this.type = opts.tab && opts.tab.type ? opts.tab.type : 'site';
-	this.settings = new List({ data: opts && opts.settings || [], model: Setting, keys: true});
+	this.settings = new List({ data: opts && opts.settings || [], model: Setting, keys: true, minLimit: 0});
 	// TODO: find a better way to set default label & lookup
 	var setDefs = setInterval(function() {
 		if (window.customSettings && window.customSettings.i18n) {
@@ -552,6 +555,15 @@ function Tab(opts) {
 			}
 		}
 	};
+	this.settings.hasTitle = function(e) {
+		var items = self.settings.items(),
+				index = ko.contextFor(e).$index();
+		for (var i = 0; i < index; i++) {
+			if (items[i].type() === 'section-title')
+				return true;
+		}
+		return false;
+	};  
 	this.settings.activeItemCount = ko.computed(function() { return self.settings.activeItems().length; });
 	this.settings.disable_open = ko.computed(function() { return self.settings.activeItemCount() < 1; });
 	this.settings.allAreOpened = ko.computed(function() { 
@@ -626,6 +638,9 @@ var Setting = function(opts) {
 		value:  ko.computed(function() { return self.lookup() + '-value'})
 	}
 	this.label = opts ? ko.observable(opts.label) : this.label;
+	this.lookup.subscribe(function(newValue) {
+		self.lookup(newValue.toLowerCase().trim().replace(/[\s\.?!,;:\/]+/g, '_').replace(/_+/g,'_'));
+	});
 	this.options = ko.observableArray(opts && opts.options ? ko.utils.arrayMap(opts.options, function(option, i) {
 		return {val: option, index: i};
 	}) : []);
@@ -649,6 +664,8 @@ var Setting = function(opts) {
 			self.values.push({val: ko.observable(self.value())});
 		}
 	});
+	this.showHide = ko.observable('fa fa-plus-square');
+	this.folded = ko.observable(true);
 	this.isOpen = new Switch(['plus-square','minus-square']);
 	this.isHidden = ko.computed(function() { return self.access() === 'hidden';	});
 	this.isLocked = ko.computed(function() { return self.access() === 'locked';	});
@@ -658,6 +675,23 @@ var Setting = function(opts) {
 		if (!this[opt]) this[opt] = opts[opt];
 	}
 }
+function testtt(data,e) {
+}
+Setting.prototype.toggleShowHide = function(data, e) { 
+	var context = ko.contextFor(e.target || e.srcElement)
+			index = context.$index(),
+			state = this.showHide(),
+			items = context.$parent.items(); 
+	this.showHide(state === 'fa fa-plus-square' ? 'fa fa-minus-square': 'fa fa-plus-square'); 
+	for (var i = index+1; i < items.length; i++) {
+		if (items[i].type() === 'section-title') 
+			return;
+		if (state === 'fa fa-plus-square')
+			items[i].folded(false);
+		else 
+			items[i].folded(true);
+	}
+};
 Setting.prototype.castValue = function() {
 	var val = this.value();
 	if (/false/.test(val)) 
@@ -794,6 +828,14 @@ function initcustomSettings() {
 			ajaxData.rawData = parsed;
 			window.customSettings = window.GSCS = new ViewModel(ajaxData);
 			ko.applyBindings(customSettings, document.body);
+			if ($ && $.fn.scrollToFixed) {
+				var tb = $('#ko-main-toolbar');
+				tb.scrollToFixed({marginTop: 0, 
+					preFixed: function() { tb.css({'margin-top': '0px', 'border-bottom': '1px solid #ccc'}); },
+					preUnfixed: function() { tb.css({'margin-top': '30px', 'border-bottom': 'none'}); }
+				});
+			}
+			document.body.className += ' cs-loaded';
 			if (window.hooks && window.hooks.length) {
 				for (var i = 0; i < window.hooks.length; i++) {
 					if (typeof window.hooks[i] === 'function')

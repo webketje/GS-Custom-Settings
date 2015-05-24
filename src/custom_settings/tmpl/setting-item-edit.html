@@ -1,9 +1,5 @@
-<div class="ko-drawer" 
-	data-bind="css: { 'active': selected,
-		'ko-h-35': !$data.isOpen.state(),
-		'ko-h-135': $data.isOpen.state() && type() !== 'section-title', 
-		'ko-h-75': $data.isOpen.state() && type() === 'section-title'}">
-	<div class="ko-1-1 ko-box ko-pad-5 ko-mb-5" style="margin-top: 3px;">
+<div class="{{ 'setting ' + type() }}" data-bind="css: { 'active': selected, 'ko-h-full': $data.isOpen.state() }">
+	<div>
 		<!-- Setting toolbar -->
 		<div class="ko-toolbar">
 			<button type="button" data-bind="click: toggleSelect, i18n: { title: 'prop_select'}, style: { color: selected() ? '#CF3805' : ''}">
@@ -14,121 +10,85 @@
 			</button>
 		</div>
 		<!-- Setting top row container -->
-		<span class="ko-3-5" style="display: inline-block; width: 66%">
+		<span class="setting-bar">
 			<!-- Setting label field -->
-			<span class="ko-1-2" style="display: inline-block;">
-				<label for="{{ names.label }}" 
-					data-bind="i18n: 'label_label'">
-				</label>
-				<input style="width: 140px;" class="ko-3-5" type="text" 
-					value="{{ label }}" 
-					name="{{ names.label }}" 
-					id="{{ names.label }}">
+			<span>
+				<label for="{{ names.label }}" data-bind="i18n: 'label_label'"></label>
+				<input type="text" value="{{ label }}" name="{{ names.label }}" id="{{ names.label }}">
 			</span>
 			<!-- Setting lookup field -->
-			<span class="ko-1-2" style="display: inline-block;">
-				<label for="{{ names.lookup }}"
-					data-bind="i18n: 'label_lookup'" >
-				</label>
-				<input style="width: 140px;" class="ko-3-5" type="text" 
-					value="{{ lookup }}" 
-					name="{{ names.label }}" 
-					id="{{ names.label }}"
-					data-bind="event: {change: function() { lookup(lookup().replace(/\W+/g, '_').replace(/_+/g,'_'));}}">
+			<span>
+				<label for="{{ names.lookup }}" data-bind="i18n: 'label_lookup'"></label>
+				<input type="text" value="{{ lookup }}" name="{{ names.label }}" id="{{ names.label }}">
 			</span>
 		</span>
 		<!-- Setting display code PHP -->
-		<div class="ko-float-right ko-text-right" style="width: 175px;" 
-			data-bind="component: {name: 'code-input', params: {
+		<div data-bind="component: {name: 'code-input', params: {
 				prefix: '\<\?php get_setting(\'',
 				suffix: '\'); ?>', 
-				data: $parents[1].lookup() + '\',\'' + lookup()}}">
+				data: $parents[1].lookup() + '\',\'' + lookup(),
+				tooltip: ko.unwrap($parents[1].lookup) + '/' + ko.unwrap(lookup)}}">
 		</div>
 	</div>
 	<!-- Setting folded row container -->
-	<div class="ko-1-3 ko-float-left ko-box-padding">
+	<div>
 		<!-- Setting type select -->
-		<div class="ko-1-1 ko-box">
-			<label class="ko-2-5" 
-				for="{{ names.type }}"
-				data-bind="i18n: 'label_type'">
-			</label>
-			<select class="ko-3-5"
-				value="{{ type }}"
-				name="{{ names.label }}" 
-				id="{{ names.label }}" 
+		<div class="setting-type">
+			<label for="{{ names.type }}"	data-bind="i18n: 'label_type'"></label>
+			<select value="{{ type }}" name="{{ names.label }}" id="{{ names.label }}" 
 				data-bind="options: $root.data.types, optionsValue: 'value', optionsText: 'label', event: {change: changeInputType}">
 			</select>
 		</div>
 		{{ #if: type() !== 'section-title' }}
-		<div class="ko-1-1 ko-box">
-			<label class="ko-2-5" 
-				for="{{ names.access }}"
-				data-bind="i18n: 'label_access'">
-			</label>
-			<select class="ko-3-5" 
-				value="{{ access }}"
-				name="{{ names.access }}" 
-				id="{{ names.access }}"
+		<!-- Setting access select -->
+		<div class="setting-access">
+			<label for="{{ names.access }}" data-bind="i18n: 'label_access'"></label>
+			<select	value="{{ access }}" name="{{ names.access }}" id="{{ names.access }}"
 				data-bind="options: $root.data.accessLevels, optionsValue: 'value',	optionsText: 'label'">
 			</select>
 		</div>
 		
 		<!-- Setting value field -->
-		<div class="ko-1-1 ko-box" data-bind="visible: type() !== 'textarea' ">
-			<label class="ko-2-5" for="" style="display: inline-block;" data-bind="i18n: 'label_value'"></label>
+		<div class="setting-value" data-bind="visible: type() !== 'textarea' ">
+			<label for="" data-bind="i18n: 'label_value'"></label>
 			{{ #if: isOptionInput }}
-			<select class="ko-3-5" data-bind="options: options, optionsValue: 'index', optionsText: 'val', value: value"></select>
+			<select data-bind="options: options, optionsValue: 'index', optionsText: 'val', value: value"></select>
 			{{ /if }}
 			{{ #if: /text\b|image|color/.test(type()) }}
-			<input class="ko-3-5" type="text" data-bind="value: value">
+			<input type="text" data-bind="value: value">
 			{{ /if }}
 			{{ #if: /checkbox|switch/.test(type()) }}
-			<span class="ko-1-2"> <input type="checkbox" data-bind="checked: value"></span>
+			<span class="ko-1-2">
+				<input type="checkbox" data-bind="checked: value">
+			</span>
 			{{ /if }}
 		</div>
-		<div class="ko-1-1 ko-box" data-bind="visible: /text/.test(type())">
-			<label class="ko-2-5" style="display: inline-block;" data-bind="i18n: 'label_i18n'"></label>
-			<input type="checkbox" 
-				data-bind="checked: i18n">
+		<div class="setting-i18n" data-bind="visible: /text/.test(type())">
+			<label data-bind="i18n: 'label_i18n'"></label>
+			<input type="checkbox" data-bind="checked: i18n">
 		</div>
 		{{ /if }}
 	
 	</div>
 	{{ #if: isOptionInput }}
 	<!-- Setting options field -->
-  <div class="ko-float-left ko-box-padding ko-1-3"  style=" height: 85px;">
-		<label for="{{ names.options }}"
-			data-bind="i18n: 'label_options'">
-		</label>
-		<div class="ko-box" rows="4"
-			name="{{ names.options }}" 
-			id="{{ names.options }}" 
-			data-bind="component: {name: 'array-to-text', params: {data: options, i18n: {placeholder: 'placeholder_options'}}}">
-		</div>
+  <div class="setting-options">
+		<label for="{{ names.options }}" data-bind="i18n: 'label_options'"></label>
+		<div name="{{ names.options }}" id="{{ names.options }}" data-bind="component: {name: 'array-to-text', params: {data: options, i18n: {placeholder: 'placeholder_options'}}, rows: 6}"></div>
 	</div>
 	{{ /if }}
 	{{ #if: type() === 'textarea' }}
-	<!-- Setting value field (Edit mode > Textarea type) -->
-  <div class="ko-float-left ko-box-padding ko-1-3"  style=" height: 85px;">
-		<label class="ko-2-5" for="" style="display: inline-block;" data-bind="i18n: 'label_value'"></label>
-		<textarea class="ko-1-2" rows="4" 
-			value="{{ value }}">
-		</textarea>
+	<!-- Setting value field (Textarea type) -->
+  <div class="setting-value">
+		<label for="{{ names.value }}" data-bind="i18n: 'label_value'"></label>
+		<textarea rows="6" value="{{ value }}" name="{{ names.value }}" id="{{ names.value }}"></textarea>
 	</div>
 	{{ /if }}
 	{{ #if: type() !== 'section-title' }}
 	<!-- Setting description field -->
-	<div class="ko-float-right ko-box-padding ko-1-3" style="height: 85px;">
-		<label for="{{ names.descr }}"
-			data-bind="i18n: 'label_descr'">
-		</label>
-		<textarea rows="4"
-			value="{{ descr }}"
-			name="{{ names.descr }}"
-			id="{{ names.descr }}"
-			data-bind="i18n: {placeholder: 'placeholder_descr'}">
-		</textarea>
+	<div class="setting-descr">
+		<label for="{{ names.descr }}" data-bind="i18n: 'label_descr'"></label>
+		<textarea rows="6" value="{{ descr }}" name="{{ names.descr }}" id="{{ names.descr }}" data-bind="i18n: {placeholder: 'placeholder_descr'}"></textarea>
 	</div>
 	{{ /if }}
 </div>

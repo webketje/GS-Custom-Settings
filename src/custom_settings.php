@@ -2,19 +2,15 @@
 /*
 Plugin Name: GS Custom Settings
 Description: A plugin for custom site, theme and plugin settings.
-Version: 0.4
+Version: 0.5
 Author: Kevin Van Lierde
 Author URI: http://webketje.github.io/
 */
 
-// provide a way for other themes/ plugins to check 
-// whether GS Custom Settings is active and what version
-define('GS_CUSTOM_SETTINGS_ACTIVE', true);
-define('GS_CUSTOM_SETTINGS_VERSION', '0.4');
-
 // include customSettings class
 require_once(GSPLUGINPATH . 'custom_settings/customsettings.class.php');
 
+// initiate customSettings
 customSettings::createDataSubfolder();
 $custom_settings = customSettings::retrieveAllSettings();
 $custom_settings_dictionary = customSettings::mapAllSettings();
@@ -25,13 +21,19 @@ customSettings::loadJsLibs();
 register_plugin(
 	'custom_settings',
 	$custom_settings_lang['title'],
-	'0.3',
+	customSettings::$version,
 	'Kevin Van Lierde',
-	'http://webketje.github.io', 
+	'http://webketje.com', 
 	$custom_settings_lang['descr'],
 	'site',
   'custom_settings_init'
 );
+
+// provide a way for other themes/ plugins to check 
+// whether GS Custom Settings is active and what version
+define('GS_CUSTOM_SETTINGS_ACTIVE', true);
+define('GS_CUSTOM_SETTINGS_VERSION', customSettings::$version);
+
 // GS hooks
 add_action('nav-tab', 'createNavTab', array('site', 'custom_settings', $custom_settings_lang['tab_name']));
 add_action('site-sidebar', 'custom_settings_sidebar');
@@ -52,11 +54,7 @@ if (isset($live_plugins['i18n_base.php']) && $live_plugins['i18n_base.php'] !== 
 	$i18n_active = true;
 else
 	$i18n_active = false;
-function custom_settings_mu_user_permissions() {
-	global $xml, $datau;
-	if (isset($datau->KO_EDIT)) 
-		$xml->addChild('KO_EDIT', $datau->KO_EDIT);
-}
+	
 // front-end filter (WYSIWYG)
 add_filter('content', 'custom_settings_filter');
 
@@ -68,11 +66,12 @@ function custom_settings_sidebar() { customSettings::getCustomSidebar();}
 function custom_settings_filter($content) { return customSettings::contentFilter($content); }
 function custom_settings_user_permissions() { customSettings::setUserPermission(); }
 function mu_custom_settings_user_permissions() { customSettings::mu_setUserPermission(); }
-// beneath used in both render hooks
-function custom_settings_render($plugin, $html) {
-	if (is_callable($html)) {
+
+// beneath used in both GS Custom Settings render hooks
+function custom_settings_render($plugin, $output_func) {
+	if (is_callable($output_func)) {
 		echo '<div data-bind="if: data.activeItemValid() && data.items()[data.activeItem()].lookup() === \'' . $plugin . '\' ">';
-		$html();
+		$output_func();
 		echo '</div>';
 	}
 }
@@ -98,6 +97,5 @@ function get_tab_link($tab=NULL, $linkText='settings') {
 }
 // use with caution
 function remove_setting($tab, $setting)             { customSettings::removeSetting($tab, $setting); }
-// use with caution
 function set_setting($tab, $setting, $newValue)     { customSettings::setSetting($tab, $setting, $newValue); }
 ?>

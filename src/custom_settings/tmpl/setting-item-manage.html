@@ -1,25 +1,20 @@
-{{ #ifnot: isHidden }}
-<div class="ko-list-item">
-	<div class="ko-3-5 ko-float-left">
-		{{ #if: ko.unwrap(type) !== 'section-title' }}
-		<label class="ko-mr-10"	for="{{ ko.unwrap(lookup) + '-output' }}">{{ label }}</label>
-		<span class="ko-1-3" style="display: inline-block;" 
-			data-bind="component: {name: 'code-input', params: {
-				prefix: '(% setting: ',
-				suffix: ' %)', 
-				data: ko.unwrap($parents[1].lookup) + '/' + ko.unwrap(lookup), 
-				tooltip: 'code_tip'}}">
-		</span>
-		{{ /if }}
-		{{ #if: ko.unwrap(type) === 'section-title' }}
-		<h3 class="ko-section-title">{{ $root.utils.capitalize(label) }}</h3>
-		{{ /if }}
-		<p class="ko-setting-descr ko-1-1">{{{ descr }}}</p>
-	</div>
-	{{ #if: ko.unwrap(type) !== 'section-title' }}
-	<div class="ko-float-right ko-text-right ko-2-5" 
-		data-bind="template: {name: (ko.unwrap(type) + '-input-tmpl').replace(/\s+/g,'-'), data: $data}"></div>
+{{ #ifnot: isHidden }}<!-- <div class="ko-list-item" data-bind="visible: (!folded() && type() !== 'section-title') || type() === 'section-title' || !$parent.hasTitle($element) || $root.searchActive()">-->
+<div class="{{ 'setting ' + type() }}">
+	{{ #if: ko.unwrap(type) === 'section-title' }}
+	<!-- <i class="{{ showHide }}" data-bind="style.color: showHide() === 'fa fa-minus-square' ? '#CF3805' : '#666', click: toggleShowHide"></i> -->
+	<h3>{{ $root.utils.capitalize(label) }}</h3>
 	{{ /if }}
-	<div class="ko-clearfix"></div>
+	{{ #if: ko.unwrap(type) !== 'section-title' }}
+	<div>
+		<label for="{{ ko.unwrap(lookup) + '-output' }}" title="{{ ko.unwrap($parents[1].lookup) + '/' + ko.unwrap(lookup) }}">{{ label }}</label>
+		<p class="setting-descr" data-bind="html: descr"></p>
+		<pre class="ko-code" 
+			data-bind="visible: $parents[1].enableCodeDisplay !== false,
+				text: '(% setting: ' + ko.unwrap($parents[1].lookup) + '/' + ko.unwrap(lookup) + ' %)',
+				click: function() { var range = document.createRange(), selection = window.getSelection(); range.selectNodeContents($element); selection.removeAllRanges(); selection.addRange(range);}"></pre>
+	</div>
+	<div style="float: right; text-align: right; width: 39%;"	data-bind="template: {name: (ko.unwrap(type) + '-input-tmpl').replace(/\s+/g,'-'), data: $data}"></div>
+	{{ /if }}
+	<div style="clear: both; float: none; width: 100%;"></div>
 </div>
 {{ /ifnot }}

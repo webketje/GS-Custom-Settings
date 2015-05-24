@@ -1,8 +1,8 @@
 { "title": "Русский перевод плагина GS Custom Settings",
   "meta": {
-    "Date":  "18 апреля 2015",
+    "Date":  "24 апреля 2015",
     "Revision": "1",
-    "Version":  "0.4",
+    "Version":  "0.5",
     "traductors":  "Олег Светлов",
     "package": "GetSimple",
     "subpackage": "Язык"},
@@ -52,6 +52,7 @@
     "tab_down": "Переместить вкладку вниз",
     "tab_del": "Удалить вкладку",
     "tab_add": "Добавить вкладку",
+    "tab_proptoggle": "Toggle tab labels/lookups",
     "cmd_export_as": "Экспортировать вкладку как: ",
     "cmd_export": "Экспорт",
     "cmd_import": "Импорт",

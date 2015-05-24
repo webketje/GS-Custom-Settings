@@ -1,37 +1,58 @@
+25/05/2015 - V. 0.5 (Cyrillic)
+
+New: 
+  - Added option to disable display of lookup code copy in Manage mode for plugins/ themes
+Changes: 
+  - More space & textarea resize for settings in Edit mode
+  - Minor CSS changes & CSS file restructured
+  - Labels in Manage mode have a title attribute which displays their (full) lookup properties
+  - Code copy fields only appear in Manage mode when hovering over the setting
+  - Added server cache refresh on plugin update
+Bugfixes: 
+  - Fixed Cyrillic char problem with custom JSON indentation function
+  - Fixed Cyrillic chars being stripped out of setting lookups
+  - Fixed 'Search..' label not translated
+  - Fixed code copy lookup tooltip in Edit mode + sidebar tooltip for label/lookup toggle
+  - Fixed wrong version in plugin registration
+  - Fixed unable to remove the last setting in a tab
+  - Fixed crappy page display on load
+  - Fixed content filter
+  - Fixed theme import not working (+not working for I18N-settings)
+
 20/05/2015 - V. 0.4 (DevChills)
 
 New:
-	- 3 new plugin hooks 'custom-settings-save', 'custom-settings-render-top', and 'custom-settings-render-bottom'
-	- Plugin version notification & download through the UI
-	- Fully automatic version update of settings for themes/ plugins
-	- Added '?' help tab with version info, links, & translator credits 
-	- Text & textarea settings can now be multilingual (with I18n plugin v.2.5.8+)
-	- Added PHP function get_i18n_setting() for multilingual settings (with I18n plugin)
-	- Added PHP function return_setting_group()
-	- It is now possible to store custom setting properties in JSON file (for checking with PHP)
-	- Renewed keyboard shortcuts
-	- When GSSTYLESBFIXED is set, the toolbar in Edit mode will sticky to the top of the window
-	- Tab options: enableReset ('Reset all settings' button) & 'enableAccessAll: false' hide tabs for users without editing permission 
+  - 3 new plugin hooks 'custom-settings-save', 'custom-settings-render-top', and 'custom-settings-render-bottom'
+  - Plugin version notification & download through the UI
+  - Fully automatic version update of settings for themes/ plugins
+  - Added '?' help tab with version info, links, & translator credits 
+  - Text & textarea settings can now be multilingual (with I18n plugin v.2.5.8+)
+  - Added PHP function get_i18n_setting() for multilingual settings (with I18n plugin)
+  - Added PHP function return_setting_group()
+  - It is now possible to store custom setting properties in JSON file (for checking with PHP)
+  - Renewed keyboard shortcuts
+  - When GSSTYLESBFIXED is set, the toolbar in Edit mode will sticky to the top of the window
+  - Tab options: enableReset ('Reset all settings' button) & 'enableAccessAll: false' hide tabs for users without editing permission 
 Changed:
   - Upgrade from v0.1 no longer supported - to do this, deactivate, download v0.3, activate, then install 0.4
-	- Search filter improved (lower & uppercase)
-	- Code fields now show the bare lookup as title
-	- Tab lookups can now be set manually from the tab toolbar (tag icon)
-	- If gsconfig is set to have sticky sidebar, the toolbar in Edit mode will also be sticky
-	- Tabs may now contain any unicode characters: use at your own risk
-	- Textareas are resizeable vertically in Manage mode
-	- return_setting($tab, $setting) now returns the value instead of full setting. To return full setting, pass FALSE as third parameter
-	- Export output changed minimally
+  - Search filter improved (lower & uppercase)
+  - Code fields now show the bare lookup as title
+  - Tab lookups can now be set manually from the tab toolbar (tag icon)
+  - If gsconfig is set to have sticky sidebar, the toolbar in Edit mode will also be sticky
+  - Tabs may now contain any unicode characters: use at your own risk
+  - Textareas are resizeable vertically in Manage mode
+  - return_setting($tab, $setting) now returns the value instead of full setting. To return full setting, pass FALSE as third parameter
+  - Export output changed minimally
 Bugfixes:
-	- Fixed moving tab down in Edit mode causing an unrepairable bug
-	- Fixed get_setting always returning NULL when third parameter set to false
-	- Fixed get_setting with image settings to encode whitespace
-	- Fixed empty image setting returning broken image if link is not set (now empty string)
-	- Fixed empty options being saved for color setting
-	- Fixed return_setting returning entire tab when setting wasn't found (now NULL)
-	- Fixed notifications not appearing above sidebar when sidebar is set to sticky in gsconfig
-	- Fixed 'Section Title' input & empty value image placeholder name not being translated
-	- Fixed (% setting %) content filter not correctly outputting HTML tags
+  - Fixed moving tab down in Edit mode causing an unrepairable bug
+  - Fixed get_setting always returning NULL when third parameter set to false
+  - Fixed get_setting with image settings to encode whitespace
+  - Fixed empty image setting returning broken image if link is not set (now empty string)
+  - Fixed empty options being saved for color setting
+  - Fixed return_setting returning entire tab when setting wasn't found (now NULL)
+  - Fixed notifications not appearing above sidebar when sidebar is set to sticky in gsconfig
+  - Fixed 'Section Title' input & empty value image placeholder name not being translated
+  - Fixed (% setting %) content filter not correctly outputting HTML tags
   - Removed 2 non-blocking JS errors
 
 15/04/2015 - V. 0.3 (Critical fix)

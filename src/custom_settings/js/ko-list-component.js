@@ -291,7 +291,7 @@ singleSelectList.prototype.moveUp = function() {
 singleSelectList.prototype.moveDown = function() {
   var moved, activeItem = this.activeItem();
   if (!this.disable_down()) {
-    this.items.splice(activeItem-1,0,this.items.splice(activeItem+1,1)[0]);
+    this.items.splice(activeItem,0,this.items.splice(activeItem+1,1)[0]);
     this.activeItem(activeItem+1);
   }
 };

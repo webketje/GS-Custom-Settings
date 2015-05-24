@@ -28,11 +28,11 @@
 		<br><a href="http://webketje.github.io/projects/gs-custom-settings" data-bind="i18n: 'about_docs'" style="margin-left: 17px;"></a> 
 		| <a href="http://get-simple.info/forums/showthread.php?tid=7099" data-bind="i18n: 'about_support_forum'"></a> 
 		| <a href="http://get-simple.info/extend/plugin/gs-custom-settings/913/" data-bind="i18n: 'about_plugin_page'"></a> 
-		| <a href="https://github.com/webketje/Gs-Custom-Settings" style="margin-right: 50px;">Github</a>
+		| <a href="https://github.com/webketje/Gs-Custom-Settings">Github</a>
 	</div>
 </div>
 <h3 data-bind="text: data.activeItem() === false || data.items().length === 0 ? i18n['title'] : data.items()[data.activeItem()].label()"></h3>
 <div id="setting-search">
-	<i class="fa fa-search fa-flip-horizontal" style=" color: gray; right: 5px; position: relative;"></i>
-	<input type="text" style="max-width: 80%;" data-bind="textInput: search, attr: {placeholder: 'Search..'}">
+	<i class="fa fa-search fa-flip-horizontal"></i>
+	<input type="text" data-bind="textInput: search, i18n: {placeholder: 'label_search'}">
 </div>
