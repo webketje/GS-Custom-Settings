@@ -20,6 +20,7 @@
 		<span data-bind="i18n: 'cmd_import'"></span>
 		<input type="file" class="invisible-input" data-bind="i18n: {'title': 'cmd_import'}, event: {change: fn.importData}">
 	</a>
+	<a href="javascript:void(0)" data-bind="click: fn.saveData, i18n: 'BTN_SAVESETTINGS'"></a>
 	<div id="plugin-info-dg" class="hidden">
 		<strong><span data-bind="i18n: 'title'"></span> <span data-bind="text: 'v. ' + pluginVersion"></span></strong>
 		<span class="hidden">(<a target="_blank"></a>)</span><br>

@@ -813,6 +813,7 @@ function initcustomSettings() {
 		var parsed = window.i18nJSON;	
 			if (!ajaxData.i18n)
 				ajaxData.i18n = {};
+			console.log(parsed);
 			for (var str in parsed.strings) {
 				ajaxData.i18n[str] = parsed.strings[str];
 			}

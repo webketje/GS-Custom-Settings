@@ -1,3 +1,12 @@
+07/09/2015 - V 0.5.1 (Bugfix)
+
+New:
+	- Added 'Save settings' button to top navigation
+Bugfixes:
+	- Fixed setting folding automatically when type was changed
+	- Fixed default language en_US when GS lang is not available for plugin
+
+
 25/05/2015 - V. 0.5 (Cyrillic)
 
 New: 

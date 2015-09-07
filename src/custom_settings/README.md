@@ -1,10 +1,10 @@
 ## GS Custom Settings
 A GetSimple CMS plugin for custom site, theme and plugin settings.
-- Version: 0.4
-- Release Date: 20 May 2015
-- Documentation: http://webketje.github.io/projects/gs-custom-settings
+- Version: 0.5.1
+- Release Date: 07 September 2015
+- Documentation: http://webketje.com/projects/gs-custom-settings
 - Author: Kevin Van Lierde
-- Author URL: http://webketje.github.io
+- Author URL: http://webketje.com
 - License: [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/)
 
 #### Description
@@ -76,7 +76,7 @@ get_tab_link($tab=NULL, $linkText='settings')
 // @param {string} [$linkText='settings'] - (Optional) A custom text for the <a> element
 ````
 #### Plugin hooks
-[More info](http://webketje.github.io/projects/gs-custom-settings/#hooks)
+[More info](http://webketje.com/projects/gs-custom-settings/#hooks)
 
 ````
 add_action('custom-settings-load', $function)

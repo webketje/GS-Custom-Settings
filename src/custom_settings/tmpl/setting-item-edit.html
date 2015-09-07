@@ -1,4 +1,4 @@
-<div class="{{ 'setting ' + type() }}" data-bind="css: { 'active': selected, 'ko-h-full': $data.isOpen.state() }">
+<div class="{{ 'setting ' + type() + ($data.isOpen.state() ? ' ko-h-full' : '') + ( selected() ? ' active': '') }}">
 	<div>
 		<!-- Setting toolbar -->
 		<div class="ko-toolbar">

@@ -4,7 +4,7 @@ if (!class_exists('customSettings')) {
 	class customSettings {
 	
 		private static $defaultJSON = '{"site": []}';
-		public static $version = '0.5';
+		public static $version = '0.5.1';
 		
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
@@ -546,7 +546,7 @@ if (!class_exists('customSettings')) {
 		  <script type="text/template" id="setting-item-edit-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-edit.html'); ?></script>
 		  <script type="text/template" id="setting-item-manage-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-manage.html'); ?></script>
 		  <script type="text/javascript">
-		    window.i18nJSON = <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'); ?>;
+		    window.i18nJSON = <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . (file_exists(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json') ? $LANG : 'en_US') . '.json'); ?>;
 		  </script>
 		  <?php
 		}
@@ -611,7 +611,11 @@ if (!class_exists('customSettings')) {
 		public static function getLangFile() 
 		{
 			global $LANG;
-			$f = json_decode(file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'), TRUE);
+			$path = GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json';
+			if (!file_exists(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'))
+			  $path = GSPLUGINPATH . 'custom_settings/lang/en_US.json';
+			$f = json_decode(file_get_contents($path), TRUE);
+			$f['strings']['BTN_SAVESETTINGS'] = i18n_r('BTN_SAVESETTINGS');
 			return $f['strings'];
 		}
 	}
