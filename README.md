@@ -1,7 +1,7 @@
 ## GS Custom Settings
 A GetSimple CMS plugin for custom site, theme and plugin settings.
-- Version: 0.5.1
-- Release Date: 07 September 2015
+- Version: 0.6
+- Release Date: 04 October 2015
 - Documentation: http://webketje.com/projects/gs-custom-settings
 - Author: Kevin Van Lierde
 - Author URL: http://webketje.com
@@ -13,7 +13,7 @@ GS Custom Settings is a plugin for [GetSimple CMS](http://get-simple.info/) whic
 #### Features
 
 * Custom settings for site managers, plugin and theme developers
-* 8 different setting types (select, radio, text, textarea, checkbox, color, image, section titles) + 3 fancy variants (FontAwesome)
+* 9 different setting types (select, radio, text, textarea, checkbox, color, image, date, section titles) + 3 fancy variants (FontAwesome)
 * 3 access levels for settings (normal, hidden, locked)
 * Output settings in pages with `(% setting:tab/setting %)` or in PHP with `get_setting('tab','setting')`
 * Restrict user editing permission per user (also works with MultiUser 1.8.2+)
@@ -76,7 +76,7 @@ get_tab_link($tab=NULL, $linkText='settings')
 // @param {string} [$linkText='settings'] - (Optional) A custom text for the <a> element
 ````
 #### Plugin hooks
-[More info](http://webketje.com/projects/gs-custom-settings/#hooks)
+[More info](http://webketje.github.io/projects/gs-custom-settings/#hooks)
 
 ````
 add_action('custom-settings-load', $function)

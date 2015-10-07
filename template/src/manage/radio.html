@@ -1,0 +1,10 @@
+			{{ #foreach: data.options }}
+			<div class="ko-option">
+				<span>{{ $data }}</span>
+				<input class="setting-field" type="radio" 
+					name="{{ $parent.name('lookup') }}" id="{{ $parent.name('lookup') }}" 
+					value="{{ $data }}"
+					title="{{ ($parent.locked() ? 'prop_is_locked' : '') | i18n }}"
+					data-bind="checked: $parent.data.value, checkedValue: $index, disable: $parent.locked">
+			</div>
+			{{ /foreach }}

@@ -1,0 +1,25 @@
+<div class="{{ $parent.classForSetting($data, $index()) }}">
+	<div class="setting-bar">
+		<span class="cs-toolbar">
+			<button type="button" class="select" tabindex="-1" title="{{ 'prop_select' | i18n }}"><i class="fa fa-fw fa-location-arrow"></i></button>
+			<button type="button" class="expand" tabindex="-1" disabled><i class="fa fa-fw fa-plus-square"></i></button>
+			<button type="button" tabindex="-1" title="{{ $parent.codeTitleForSetting($data) }}" data-bind="click: $parent.showSettingCode">
+				<i class="fa fa-fw fa-code"></i>
+			</button>
+		</span>
+		<span>
+			<label for="{{ name('label') }}">{{ 'label_label' | i18n }}</label>
+			<input type="text" value="{{ data.label }}" name="{{ name('label') }}" id="{{ name('label') }}">
+		</span>
+		<span>
+			<label for="{{ name('lookup') }}">{{ 'label_lookup' | i18n }}</label>
+			<input type="text" value="{{ data.lookup }}" name="{{ name('lookup') }}" id="{{ name('lookup') }}">
+		</span>
+		<span class="setting-type">
+			<label for="{{ name('type') }}">{{ 'label_type' | i18n }}</label>
+			<select name="{{ name('type') }}" id="{{ name('type') }}" value="{{ data.type }}"
+				data-bind="options: $root.types, optionsValue: 'value', optionsText: 'label', on.change: $parent.replace($data, $element)">
+			</select>
+		</span>
+	</div>
+</div>

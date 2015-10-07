@@ -6,7 +6,8 @@ if (!class_exists('fileUtils')) {
 		/**
 		 *  Request encoded user PWD token combined with a prefix for extra security when handling AJAX calls
 		 */
-		public static function requestToken($prefix) {
+		public static function requestToken($prefix) 
+{
 		  global $USR;
 		  $userdata = (array)getXML(GSUSERSPATH . $USR . '.xml');
 		  return ($prefix ? $prefix : '') . $userdata['PWD'];

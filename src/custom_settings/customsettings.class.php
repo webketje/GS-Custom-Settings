@@ -4,42 +4,7 @@ if (!class_exists('customSettings')) {
 	class customSettings {
 	
 		private static $defaultJSON = '{"site": []}';
-		public static $version = '0.5.1';
-		
-		//////////////////////////////////////////////////////////////////////////
-		//                                                                      //
-		//                   Component API; not implemented                     //
-		//                                                                      //
-		//////////////////////////////////////////////////////////////////////////
-		
-		// Experimental, not used at the moment
-		public static function componentLoader() {
-		global $comps;
-	  if (file_exists(GSDATAOTHERPATH.'components.xml')) {
-	    $data = getXML(GSDATAOTHERPATH.'components.xml');
-	    $data = (array)$data;
-	  } else {
-	    $data = array();
-	  }
-	  $comps = $data['item'];
-		$componentPath = GSPLUGINPATH . 'custom_settings/components/';
-		$componentDir = array_diff(scandir($componentPath), array('.','..','.htaccess'));
-		foreach ($componentDir as $component) {
-			if (strpos($component, '.xml')) {
-				$componentData = getXML($componentPath . $component);
-				array_push($comps, $componentData->item);
-			}
-		}
-		global $fin;
-			$fin = new stdClass();
-			foreach($comps as $comp=>$val) {
-				$prop = (string)$val->title;
-				$fin->$prop = (string)$val->value;
-			}
-			var_dump($fin->Sidebar2);
-			return $fin;
-		}
-		
+		public static $version = '0.6';		
 		
 		//////////////////////////////////////////////////////////////////////////
 		//                                                                      //
@@ -84,8 +49,8 @@ if (!class_exists('customSettings')) {
 			$vDat = &$datFile['tab']['version'];
 			$vOri = &$oriFile['tab']['version'];
 			// convert both versions to float numbers for easy comparison
-			$v1 = (float)substr($vDat, 0, strpos($vDat,'.')) . str_replace('.','',substr($vDat, strpos($vDat,'.')));
-			$v2 = (float)substr($vOri, 0, strpos($vOri,'.')) . str_replace('.','',substr($vOri, strpos($vOri,'.')));
+			$v1 = (float)(substr($vDat, 0, 2) . str_replace('.', '', substr($vDat, 2)));
+			$v2 = (float)(substr($vOri, 0, 2) . str_replace('.', '', substr($vOri, 2)));
 			// only update settings if no version in the data folder file is present or 
 			// if the version is older than the one included with the theme or plugin
 			if (isset($vOri) && (!isset($vDat) || $v2 > $v1)) {
@@ -105,7 +70,7 @@ if (!class_exists('customSettings')) {
 						// else if the type is identical, overwrite all properties except the value
 						// needs to be more specific (eg for option settings)
 						else {
-							$oldVal = $datS[$ori['lookup']]['value'];
+							$oldVal = @$datS[$ori['lookup']]['value'];
 							$mixS = $ori;
 							$mixS['value'] = $oldVal;
 							array_push($merged, $mixS);
@@ -237,12 +202,16 @@ if (!class_exists('customSettings')) {
 		/** Maps settings to an array dictionary containing indexes
 		 *  Used in all display/ return functions and globalized as $custom_settings_dictionary
 		 */
-		public static function mapAllSettings() 
+		public static function mapAllSettings($beh =NULL) 
 		{
 			global $custom_settings;
 			$result = array();
 			// A little bit confusing, so: first iterate over $custom_settings and assign tab lookup
 			// to the result, nothing special here.
+			if ($beh === 'blek') {
+			echo json_encode($custom_settings);
+			return;
+			}
 			foreach ($custom_settings['data'] as $tab) {
 				$result[$tab['tab']['lookup']] = array();
 				// For each setting in the $custom_settings tab, assign the setting's lookup as key
@@ -299,7 +268,7 @@ if (!class_exists('customSettings')) {
 			
 			if (isset($custom_settings['data'][$tab]) && isset($custom_settings['data'][$tab]['settings'][@$custom_settings_dictionary[$tab][$setting]])) {
 				$settingInArray = $custom_settings['data'][$tab]['settings'][@$custom_settings_dictionary[$tab][$setting]];
-				$value = $settingInArray['value']; 
+				$value = array_key_exists('value', $settingInArray) ? $settingInArray['value'] : ''; 
 				$returnValue = '';
 				if ($value === TRUE)	
 					$returnValue = 'on';
@@ -309,6 +278,8 @@ if (!class_exists('customSettings')) {
 					$returnValue = $settingInArray['options'][$value];
 				elseif ($settingInArray['type'] === 'image' && $value)
 					$returnValue = '<img src="' . str_replace(' ', '%20', $value) . '" alt="' . $settingInArray['label'] . '">';
+				elseif ($settingInArray['type'] === 'date')
+					$returnValue = $value;
 				else 
 					$returnValue = $value;
 				
@@ -378,12 +349,11 @@ if (!class_exists('customSettings')) {
 			global $i18n_active, $language;
 			if ($i18n_active && isset($language)) {
 				$langs = return_i18n_available_languages();
-				$index = array_search($language, $langs);
-				$settingVals = self::returnSetting($tab, $setting, 'values');
+				$settingVals = self::returnSetting($tab, $setting, 'i18n');
 				if ($echo === TRUE) 
-					echo $settingVals ? $settingVals[$index] : '';
+					echo $settingVals ? $settingVals[$language] : '';
 				else
-					return $settingVals ? $settingVals[$index] : $settingVals;
+					return $settingVals ? $settingVals[$language] : $settingVals;
 			}
 			return;
 		}
@@ -434,14 +404,6 @@ if (!class_exists('customSettings')) {
 		//                          GetSimple Hooks                             //
 		//                                                                      //
 		//////////////////////////////////////////////////////////////////////////
-		
-		/** Displays a custom Knockout sidebar. With Knockout, the standard sidebar-hook for GS is useless
-		 *  Hook: site-sidebar
-		 */
-		public static function getCustomSidebar() {
-			$path = GSPLUGINPATH . 'custom_settings/tmpl/sidebar.html';
-			echo file_get_contents($path);
-		}
 		
 		/** Sets per-user editing permission
 		 *  Hook: settings-user
@@ -512,43 +474,11 @@ if (!class_exists('customSettings')) {
 		 */
 		public static function init() 
 		{
-			global $custom_settings, $i18n_initialized;
+			global $custom_settings, $i18n_initialized, $LANG, $TEMPLATE, $SITEURL, $mu_active;
 			exec_action('custom-settings-load');
-			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
-			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
-			global $LANG, $TEMPLATE, $SITEURL, $mu_active;
-			$tmpl = GSPLUGINPATH . 'custom_settings/tmpl/';
-		  echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/nav.html'); ?>
-		  <script>
-		    window.hooks = [];
-		    function addHook(fn) {
-		      window.hooks.push(fn);
-		    }
-		  </script>
-		  <div id="custom-rendering-top"><?php exec_action('custom-settings-render-top'); ?></div>
-		  <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/tmpl/main.html'); ?>
-		  <br>
-		  <input type="hidden" id="i18n-plugin-langs" value="<?php echo function_exists('return_i18n_available_languages') ? str_replace('"', '\'', json_encode(return_i18n_available_languages())) : 'FALSE'; ?>">
-		  <div id="custom-rendering-bottom"><?php exec_action('custom-settings-render-bottom'); ?></div>
-			<input type="button" class="submit" data-bind="click: fn.saveData" value="<?php i18n('BTN_SAVESETTINGS'); ?>" id="custom-settings-save-btn"/>
-			<span id="custom-buttons">
-				<!-- ko if: $root.data.activeItem() && data.items()[data.activeItem()] && data.items()[data.activeItem()].enableReset -->
-				<input type="button" class="submit" data-bind="click: data.items()[data.activeItem()].settings.resetToDefault, i18n: {value: 'label_reset'} "/>
-				<!-- /ko --></span>
-		  <input type="hidden" id="chosen-lang"  value="<?php echo $LANG; ?>">
-		  <input type="hidden" id="path-lang"  value="<?php echo GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'; ?>">
-		  <input type="hidden" id="path-handler"    value="<?php echo $SITEURL; ?>plugins/custom_settings/customsettings.handler.php">
-		  <input type="hidden" id="site-template"    value="<?php echo strtolower($TEMPLATE); ?>">
-		  <input type="hidden" id="edit-permission"    value="<?php echo $mu_active ? self::mu_getUserPermission() : self::getUserPermission(); ?>">
-		  <input type="hidden" id="plugin-version"  value="<?php echo self::$version; ?>">
-		  <input type="hidden" id="path-data"  value="<?php echo GSDATAOTHERPATH; ?>custom_settings/data.json">
-		  <input type="hidden" id="request-token" value="<?php echo fileUtils::requestToken('kosstt'); ?>">
-		  <script type="text/template" id="setting-item-edit-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-edit.html'); ?></script>
-		  <script type="text/template" id="setting-item-manage-tmpl"><?php echo file_get_contents($tmpl . 'setting-item-manage.html'); ?></script>
-		  <script type="text/javascript">
-		    window.i18nJSON = <?php echo file_get_contents(GSPLUGINPATH . 'custom_settings/lang/' . (file_exists(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json') ? $LANG : 'en_US') . '.json'); ?>;
-		  </script>
-		  <?php
+			$tmpl = GSPLUGINPATH . 'custom_settings/tmpl/'; 
+			include($tmpl . 'view.php');
+			include($tmpl . 'setting-templates.html');
 		}
 		
 		//////////////////////////////////////////////////////////////////////////
@@ -568,6 +498,32 @@ if (!class_exists('customSettings')) {
 				return $pluginInfoJSON;
 		}
 		
+		
+		public static function getConfig() 
+		{
+			global $LANG, $TEMPLATE, $SITEURL, $mu_active;
+			require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
+			require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
+			$conf = array(
+				'lang'        => (string)$LANG,
+				'langFile'    => GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json',
+				'i18nLangs'   => function_exists('return_i18n_available_languages') ? return_i18n_available_languages() : false,
+				'handler'     => $SITEURL . 'plugins/custom_settings/customsettings.handler.php',
+				'dataFile'    => $SITEURL . 'custom_settings/data.json',
+				'pluginVer'   => self::$version,
+				'editPerm'    => $mu_active ? self::mu_getUserPermission() : self::getUserPermission(),
+				'siteTmpl'    => strtolower($TEMPLATE),
+				'requestToken'=> fileUtils::requestToken('kosstt'),
+				'adminDir'    => GSADMINPATH,
+				'baseUrl'     => strtolower((string)$SITEURL),
+				'id'          => 'custom_settings',
+				'template'    => strtolower((string)$TEMPLATE)
+			);
+			$output = htmlspecialchars(json_encode($conf), ENT_COMPAT, 'UTF-8');
+			return $output;
+		}
+		
+		
 		/** Loads JS & CSS resources for the plugin
 		 *  Used at start of main plugin file
 		 */
@@ -579,14 +535,10 @@ if (!class_exists('customSettings')) {
 			// with possibility to add plugin-specific ones in the plugin folder
 			
 			GSutils::registerLib('custom_settings', array(
-				'knockout'        => array($SITEURL . 'plugins/custom_settings/js/knockout.js',         '3.2.0',FALSE),
-				'fileSaver'       => array($SITEURL . 'plugins/custom_settings/js/FileSaver.js',        '1',FALSE),
-				'kopunches'       => array($SITEURL . 'plugins/custom_settings/js/knockout.punches.min.js', '0.5.1',FALSE),
-				'koBase'          => array($SITEURL . 'plugins/custom_settings/js/koBase.js',           '1.0',  TRUE),
-				'koStyle'         => array($SITEURL . 'plugins/custom_settings/css/ko-style.css',       '1.0',  'screen'),
-				'fontawesome'     => array($SITEURL . 'plugins/custom_settings/css/font-awesome.min.css', '4.3',  'screen'),
-				'koList'          => array($SITEURL . 'plugins/custom_settings/js/ko-list-component.js',           '1.0',  TRUE),
-				'main'            => array($SITEURL . 'plugins/custom_settings/js/main.js','1.0',  TRUE)
+				'koStyle'         => array($SITEURL . 'plugins/custom_settings/css/gscs.css',           '1.0',  'screen'),
+				'fontawesome'     => array($SITEURL . 'plugins/custom_settings/css/font-awesome.min.css',   '4.3',  'screen'),
+				'requirejs'       => array($SITEURL . 'plugins/custom_settings/js/require.js',  '1.0',  FALSE),
+				'koMain'          => array($SITEURL . 'plugins/custom_settings/js/gscs.js',     '1.0',  TRUE)
 			));
 		}		
 		
@@ -615,8 +567,44 @@ if (!class_exists('customSettings')) {
 			if (!file_exists(GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json'))
 			  $path = GSPLUGINPATH . 'custom_settings/lang/en_US.json';
 			$f = json_decode(file_get_contents($path), TRUE);
-			$f['strings']['BTN_SAVESETTINGS'] = i18n_r('BTN_SAVESETTINGS');
 			return $f['strings'];
+		}
+		
+		public static function i18nMerge() 
+		{
+			global $LANG, $i18n;
+			$path = GSPLUGINPATH . 'custom_settings/lang/' . $LANG . '.json';
+			if (!file_exists($path))
+				$path = GSPLUGINPATH . 'custom_settings/lang/en_US.json';
+			$file = json_decode(file_get_contents($path), TRUE);
+			$file['strings']['SETTINGS_UPDATED'] = $i18n['SETTINGS_UPDATED'];
+			$file['strings']['OK'] = $i18n['OK'];
+			$file['strings']['CANCEL'] = $i18n['CANCEL'];
+			$file['strings']['BTN_SAVESETTINGS'] = $i18n['BTN_SAVESETTINGS'];
+			$file['strings']['traductors'] = $file['meta']['traductors'];
+			return json_encode($file['strings']);
+		}
+		
+		public static function upgrade() 
+		{
+			require_once('filehandler.class.php');
+			$path  = GSDATAOTHERPATH . 'custom_settings/';
+			$files = array_diff(scandir($path), array('.','..'));
+			foreach ($files as $file) {
+				$data = file_get_contents($path . $file);
+				if (strpos($data, 'fancy-') > -1 || strpos($data, 'values') > -1) {
+					$data = json_decode($data, TRUE);
+					foreach ($data['settings'] as &$setting) {
+						if (strpos($setting['type'], 'fancy-') > -1)
+							$setting['type'] = str_replace('fancy', 'icon', $setting['type']);
+						if (array_key_exists('values', $setting)) {
+							$setting['i18n'] = $setting['values'];
+							unset($setting['values']);
+						}
+					}
+					file_put_contents($path . $file, fileUtils::indentJSON($data));
+				}
+			}
 		}
 	}
 }

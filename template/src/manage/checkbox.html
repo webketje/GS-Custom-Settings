@@ -1,0 +1,6 @@
+			<input class="setting-field" type="checkbox" 
+				name="{{ name('lookup') }}" id="{{ name('lookup') }}" 
+				data-bind="disable: locked" 
+				checked="{{ data.value }}" 
+				title="{{ (locked() ? 'prop_is_locked' : '') | i18n}}">
+			

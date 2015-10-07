@@ -1,0 +1,8 @@
+			<img src="{{ data.value }}" data-bind="css: { hidden: !data.value().length}">
+			<button type="button" title="{{ (locked() ? 'prop_is_locked' : '') | i18n }}" class="button" data-bind="attr: {
+					'disabled': locked()}, 
+					click: toggleImageBrowser">Browse</button>
+			<input type="text" class="setting-field" name="{{ name('lookup') }}" id="{{ name('lookup') }}"
+				disabled="{{ locked }}" 
+				title="{{ (locked() ? 'prop_is_locked' : '') | i18n }}"
+				value="{{ data.value }}">

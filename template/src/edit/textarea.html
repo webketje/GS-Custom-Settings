@@ -1,0 +1,16 @@
+			<div class="setting-i18n">
+				<label>{{ 'label_i18n' | i18n }}</label>
+				<input type="checkbox" data-bind="checked: i18n">
+			</div>	
+		</div>
+	  <div class="setting-value">
+	    {{ #if: i18n() && $root.config.i18nLangs.length }}
+			<div data-bind="foreach: data.i18n" class="ko-lang-box">
+				<a href="#" data-bind="click: function() { $parent.activeLang($index()); }, style: {textDecoration: $index() === $parent.activeLang() ? 'underline' : 'none'}" >
+					{{ $root.config.i18nLangs[$index()] }}
+				</a>
+			</div>
+			{{ /endif }}
+			<label for="{{ name('value') }}">{{ 'label_value' | i18n }}</label>
+			<textarea rows="6" value="{{ i18n() && $root.config.i18nLangs.length ? data.i18n()[activeLang()] : data.value }}" name="{{ name('value') }}" id="{{ name('value') }}"></textarea>
+		</div>

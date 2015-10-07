@@ -1,0 +1,3 @@
+			<i class="fa fa-calendar" data-bind="on.click: $element.parentNode.getElementsByTagName('input')[0].click()"></i>
+			<input type="text" class="setting-field" data-bind="disable: locked" name="{{ name('lookup') }}" id="{{ name('lookup') }}" value="{{ data.value }}"
+				title="{{ (locked() ? 'prop_is_locked' : '') | i18n }}" placeholder="yyyy-mm-dd">

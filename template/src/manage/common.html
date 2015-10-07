@@ -1,0 +1,11 @@
+	<div class="{{ 'setting ' + data.type }}" data-bind="visible: !hidden()">
+		<div>
+			<label for="{{ name('field') }}" title="{{ $parent.codeTitleForSetting($data) }}">{{ data.label }}
+				<i class="fa fa-code" data-bind="click: $parent.showSettingCode, visible: $parent.tab.data.enableCodeDisplay !== false"></i>
+			</label>
+			<p class="setting-descr">{{{ data.descr }}}</p>
+		</div>
+		<div>
+-------------------
+		</div>
+	</div>

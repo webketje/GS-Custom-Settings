@@ -1,0 +1,11 @@
+			{{ #if: i18n() && $root.config.i18nLangs.length }}
+			<div data-bind="foreach: data.i18n" class="ko-lang-box">
+				<a href="#" data-bind="click: function() { $parent.activeLang($index()); }, style: {textDecoration: $index() === $parent.activeLang() ? 'underline' : 'none'}">
+					{{ $root.config.i18nLangs[$index()] }}
+				</a>
+			</div>
+			{{ /endif }}
+			<input type="text" class="setting-field" data-bind="disable: locked" 
+				name="{{ name('field') }}" id="{{ name('field') }}" 
+				value="{{ i18n() && $root.config.i18nLangs.length ? data.i18n()[activeLang()] : data.value }}"
+				title="{{ (locked() ? 'prop_is_locked' : '') | i18n }}">

@@ -1,0 +1,10 @@
+			{{ #foreach: data.options }}
+			<div class="ko-option">
+				<span for="{{ $parent.lookup }}">{{ $data }}</span>
+				<button type="button" class="icon-button" 
+					data-bind="click: function() { $parent.data.value($index());}, disable: $parent.locked" 
+					name="{{ $parent.name('lookup') }}" id="{{ $parent.name('lookup') }}" 
+					title="{{ ($parent.locked() ? 'prop_is_locked' : '') | i18n }}">
+				<i class="{{ 'fa fa-lg fa-' + ($parent.data.value() === $index() ? 'dot-' : '') + 'circle-o' }}"></i></button>
+			</div>
+			{{ /foreach }}

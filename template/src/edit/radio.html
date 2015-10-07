@@ -1,0 +1,13 @@
+			<div class="setting-value">
+				<label>{{ 'label_value' | i18n }}</label>
+				<select data-bind="options: data.options, optionsValue: optionValue, optionsText: optionText, value: data.value"></select>
+			</div>
+			<div class="setting-icon">
+				<label>{{ 'label_icon' | i18n }}?</label>
+				<input type="checkbox" checked="{{ icon }}">
+			</div>
+		</div>
+	  <div class="setting-options">
+			<label for="{{ name('options') }}">{{ 'label_options' | i18n }}</label>
+			<div name="{{ name('options') }}" id="{{ name('options') }}" data-bind="component: {name: 'array-to-text', params: {data: data.options, i18n: {placeholder: 'placeholder_options'}}, rows: 6}"></div>
+		</div>

@@ -2,15 +2,16 @@
 /*
 Plugin Name: GS Custom Settings
 Description: A plugin for custom site, theme and plugin settings.
-Version: 0.5
+Version: 0.6
 Author: Kevin Van Lierde
-Author URI: http://webketje.github.io/
+Author URI: http://webketje.com/
 */
 
 // include customSettings class
 require_once(GSPLUGINPATH . 'custom_settings/customsettings.class.php');
 
 // initiate customSettings
+customSettings::upgrade();
 customSettings::createDataSubfolder();
 $custom_settings = customSettings::retrieveAllSettings();
 $custom_settings_dictionary = customSettings::mapAllSettings();
@@ -31,12 +32,10 @@ register_plugin(
 
 // provide a way for other themes/ plugins to check 
 // whether GS Custom Settings is active and what version
-define('GS_CUSTOM_SETTINGS_ACTIVE', true);
-define('GS_CUSTOM_SETTINGS_VERSION', customSettings::$version);
+define('GS_CUSTOM_SETTINGS', customSettings::$version);
 
 // GS hooks
 add_action('nav-tab', 'createNavTab', array('site', 'custom_settings', $custom_settings_lang['tab_name']));
-add_action('site-sidebar', 'custom_settings_sidebar');
 
 // import vars & globalize others
 global $live_plugins, $mu_active, $i18n_active;
@@ -62,7 +61,6 @@ add_filter('content', 'custom_settings_filter');
 function custom_settings_init() { customSettings::init(); }
 
 // Plugin hooks
-function custom_settings_sidebar() { customSettings::getCustomSidebar();}
 function custom_settings_filter($content) { return customSettings::contentFilter($content); }
 function custom_settings_user_permissions() { customSettings::setUserPermission(); }
 function mu_custom_settings_user_permissions() { customSettings::mu_setUserPermission(); }
@@ -70,7 +68,7 @@ function mu_custom_settings_user_permissions() { customSettings::mu_setUserPermi
 // beneath used in both GS Custom Settings render hooks
 function custom_settings_render($plugin, $output_func) {
 	if (is_callable($output_func)) {
-		echo '<div data-bind="if: data.activeItemValid() && data.items()[data.activeItem()].lookup() === \'' . $plugin . '\' ">';
+		echo '<div data-bind="visible: data()[state.tabSelection()] && ko.unwrap(data()[state.tabSelection()].tab.data.lookup) === \'' . $plugin . '\' ">';
 		$output_func();
 		echo '</div>';
 	}

@@ -1,0 +1,3 @@
+			<button type="button" class="icon-button setting-field" name="{{ name('lookup') }}" id="{{ name('lookup') }}" data-bind="disable: locked" title="{{ (locked() ? 'prop_is_locked' : '') | i18n}}">
+				<i class="{{ 'fa fa-lg fa-toggle-' + (data.value() ? 'on' : 'off') }}"></i>
+			</button>

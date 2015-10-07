@@ -1,12 +1,38 @@
+04/10/2015 - V. 0.6 (JS Renaissance)
+
+New:
+  - Smoother mode & tab transitions, setting creation
+  - New, clean code base using RequireJS & Knockout components
+  - Lookup naming conflict errors now point the user to the involved tabs/settings
+  - Edit grid and sidebar colors now fully adapt to admin.xml & GS defaults
+  - Edit mode: Added Ctrl + A keyboard shortcut to select all settings
+  - Image settings can now make use of an image browser by clicking the 'Browse' button
+  - Color settings can now make use of a color picker by clicking the color box (except IE)
+  - Added date settings with datepicker
+  - (almost) fully compatible with FlatBlue Admin Theme plugin
+Changes:
+  - Setting limit per tab increased from 64 to 100
+  - Search is now reset when changing tabs/ mode
+  - Enhanced performance for tab editing/ switching, search, manage-mode
+  - KnockoutJS dependency updated to 3.3.0 latest build (12/08/15)
+  - Enhanced setting code snippet display (through notification)
+  - Edit mode: Support for IE8 dropped
+  - Edit mode: Enhanced GSSTYLE_WIDE display in Edit mode
+  - Edit mode: Pressing SHIFT now properly toggles between the visible setting fields
+  - Edit mode: Icon radio/checkbox are now subtypes of radio & checkbox type settings
+  - Edit mode: Tab with 15+ settings are now loaded gradually to avoid page blocking in slower browsers
+Bugfixes:
+  - Fixed all minor multi-selection bugs in Edit mode
+  - Fixed potential export bugs: filename for older browsers & appropriate encoding for non-ANSI chars
+	
 07/09/2015 - V 0.5.1 (Bugfix)
 
 New:
-	- Added 'Save settings' button to top navigation
+  - Added 'Save settings' button to top navigation
 Bugfixes:
-	- Fixed setting folding automatically when type was changed
-	- Fixed default language en_US when GS lang is not available for plugin
-
-
+  - Fixed setting folding automatically when type was changed
+  - Fixed default language en_US when GS lang is not available for plugin
+	
 25/05/2015 - V. 0.5 (Cyrillic)
 
 New: 

@@ -59,24 +59,27 @@
 	/** Query data/uploads folder for image files
 	 *  
 	 */
-	public static function getImageUploads($dir=GSDATAUPLOADPATH) 
+	public static function getImageUploads($dir=GSDATAUPLOADPATH, $dirName = NULL, $path = 'uploads/') 
 	{
 		global $SITEURL;
-		$files = array_diff(scandir($dir), array('.', '..'));
-		$imgRegex = '#jpeg|jpg|gif|png|webp|bmp#';
-		$path = $dir . '/';
-		$result = array('folder'=>'uploads', 'path' => $SITEURL . '/data/uploads', 'children' => array());
+		$files    = array_diff(scandir($dir), array('.', '..'));
+		$imgRegex = '#jpeg|jpg|gif|png|webp|bmp#i';
+		$result   = array(
+				'folder'=> (isset($dirName) ? $dirName : 'uploads')
+			, 'path' => $path
+			, 'children' => array()
+		);
 		$match = '';
 	
 		foreach ($files as $file) {
-			$current = $path . $file;
+			$current = $dir . '/' . $file;
 			if (is_dir($current)) {		  
-			  array_push($result['children'], array('folder'=> $file, 'path' => str_replace(GSDATAUPLOADPATH, 'uploads', $current), 'children' => self::getImageUploads($current)));
+			  array_push($result['children'], self::getImageUploads($current, $file, $path . $file . '/'));
 			} elseif (is_file($current) && preg_match($imgRegex, strtolower(substr($current, -4)), $match)) {
 				$imgProps = getimagesize($current);
 				$imgReturn = array(
 					'name' => $file,
-					'path' => str_replace(GSDATAUPLOADPATH, $SITEURL . '/data/uploads', $current),
+					'path' => str_replace(GSDATAUPLOADPATH, $SITEURL . 'data/uploads', $current),
 					'size' => $imgProps[0] . ' x ' . $imgProps[1],
 					'ext' => $match[0]
 				);
