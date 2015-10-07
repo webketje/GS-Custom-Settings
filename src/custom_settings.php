@@ -2,7 +2,7 @@
 /*
 Plugin Name: GS Custom Settings
 Description: A plugin for custom site, theme and plugin settings.
-Version: 0.6
+Version: 0.6.1
 Author: Kevin Van Lierde
 Author URI: http://webketje.com/
 */

@@ -1,11 +1,11 @@
 /* general */ 
-.cs-main {	position: relative; margin-bottom: 20px; }
+.cs-main {  position: relative; margin-bottom: 20px; }
 #cs-code-copy { padding-left: 5px; top: 0; left: 19px; height: 13px; padding: 2px; display: inline-block; margin-left: 20px; min-width: 250px;}
 
 #cs-help { padding-left: 5px; padding-right: 5px; }
 .cs-main label, label { font-size: 1.1em; margin-bottom: 5px; }
 .cs-main.edit, .cs-toolbar { outline: none; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-.cs-main input[type="text"], .cs-main select, .cs-main textarea, #setting-search input[type="text"], #cs-code-copy { padding: 2px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px;	-o-border-radius: 3px; border-radius: 3px;	border: 1px solid #ddd; outline: none;  }
+.cs-main input[type="text"], .cs-main select, .cs-main textarea, #setting-search input[type="text"], #cs-code-copy { padding: 2px 4px; -moz-border-radius: 3px; -webkit-border-radius: 3px;  -o-border-radius: 3px; border-radius: 3px;  border: 1px solid #ddd; outline: none;  }
 .cs-main input[type="text"]:focus, .cs-main select:focus, .cs-main textarea:focus {outline: 1px solid #BBB !important;}
 #custom-rendering-bottom { margin-bottom: 20px; }
 /* fix for IE9- no default margin on inputs vs labels + ms-clear */
@@ -52,7 +52,7 @@
 .setting * { box-sizing: initial; opacity: 1; transition: opacity 0.5s; }
 .edit.init .setting { opacity: 0; }
 .setting { margin-bottom: 0px; position: relative; border-bottom: 1px solid #F4F4F4; }
-.setting textarea { resize: vertical; width: 100%;	font-size: 1em;	font-family: inherit; overflow: auto; line-height: 1.2em; }
+.setting textarea { resize: vertical; width: 100%;  font-size: 1em;  font-family: inherit; overflow: auto; line-height: 1.2em; }
 .edit .setting .cs-toolbar { margin-right: 5px; float: left;  }
 .edit .setting { clear: both; transition: all .2s ease-in-out; -moz-transition: all .2s ease-in-out; -webkit-transition: all .2s ease-in-out; -o-transition: all .2s ease-in-out; }
 .edit .setting select { text-transform: capitalize;}
@@ -78,7 +78,7 @@
 .manage .setting.image button { bottom: 34px; right: 0px; position: absolute; padding: 2px 4px;}
 /* text-indent & cursor properties required for browser which do not support input type="color" */
 .manage .setting.color .colorbox input { opacity: 0; display: block; width: 100%; height: 100%; border: none; padding: 0; margin: 0; cursor: default; text-indent: -3000px; }
-#cs-code-copy {-moz-border-radius: 3px; -o-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; white-space: nowrap; letter-spacing: -.05em; font-size: .9em; font-family: Consolas, monospace; font-weight: normal;	background: #eee;	padding: 2px 4px;	border-radius: 3px; }
+#cs-code-copy {-moz-border-radius: 3px; -o-border-radius: 3px; -webkit-border-radius: 3px; border-radius: 3px; white-space: nowrap; letter-spacing: -.05em; font-size: .9em; font-family: Consolas, monospace; font-weight: normal;  background: #eee;  padding: 2px 4px;  border-radius: 3px; }
 /* section titles */
 .manage .setting.section-title h3 { margin-top: 10px; margin-bottom: 10px; font-style: normal; width: 100%;}
 .manage .setting.section-title h3 i { font-size: .8em;}
@@ -95,8 +95,8 @@
 div.ko-lang-box a {margin-right: 2px; text-transform: uppercase; font-size: .9em; text-decoration: none; position: relative;}
 .manage .setting { height: initial; padding: 3px 0; margin-bottom: 5px; overflow: auto; display: table; table-layout: fixed; width: 100%; }
 /* .manage .setting textarea { margin-top: -10px; }
-.manage .setting input[type="text"] {	margin-top: -10px;} */
-button.icon-button {background: transparent; border: none; outline: none;	padding: 0; }
+.manage .setting input[type="text"] {  margin-top: -10px;} */
+button.icon-button {background: transparent; border: none; outline: none;  padding: 0; }
 .ko-option span { display: inline-block; max-width: 90%; }
 .ko-option input { vertical-align: top; }
 .setting .colorbox {width: 24px; height: 19px; border: 1px solid #DDD; border-radius: 5px; float: right; margin-right: 5px;}
@@ -155,12 +155,12 @@ button.icon-button {background: transparent; border: none; outline: none;	paddin
 #sidebar .snav li.current { color: white;}
 #sidebar .snav li a:link, #sidebar .snav li a:visited { transition: background-color .2s ease-in-out; -moz-transition: background-color .2s ease-in-out; -webkit-transition: background-color .2s ease-in-out; -o-transition: background-color .2s ease-in-out; }
 #sidebar .snav li.current a { text-shadow: 1px 1px 0px #9F2C04; margin-left: 0px; cursor: default; color: #FFF; background: #CF3805 url('../../../admin/template/images/active.png') center left no-repeat; padding-left: 26px; margin-left: 1px; }
-#sidebar .snav li input {top: 5px; left: 25px; position: absolute; background: transparent;	border: none;	outline: none; color: inherit; font-weight: bold;	font-size: 12px; width: 120px; }
+#sidebar .snav li input {top: 5px; left: 25px; position: absolute; background: transparent;  border: none;  outline: none; color: inherit; font-weight: bold;  font-size: 12px; width: 120px; }
 #sidebar .snav li input:focus { color: white;}
 .cs-main .manage input[type="radio"], .cs-main .manage input[type="checkbox"] { vertical-align: middle; }
 
 /* notification manager */
-#notification-manager {	position: fixed; z-index: 1001;	top: 0px;	margin-left: auto; width: 960px; }
+#notification-manager {  position: fixed; z-index: 1001;  top: 0px;  margin-left: auto; width: 960px; }
 
 /* hide JS loading on page load */
 #maincontent, #sidebar { display: none; }

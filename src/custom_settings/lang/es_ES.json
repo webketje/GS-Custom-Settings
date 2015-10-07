@@ -70,6 +70,7 @@
     "input_fancy_radio": "radio (icono)",
     "input_color": "color",
     "input_section_title": "título",
+    "input_date": "fecha",
     "placeholder_options": "Una opción por línea",
     "placeholder_descr": "Descripción para la configuración",
     "placeholder_lookup": "nueva_configuracion",

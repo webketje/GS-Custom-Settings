@@ -4,7 +4,7 @@
 	 *  Use it simply by activating the local server and navigating to this directory
 	 */
 	function concatTemplates() {
-		$outputDir = '../GetSimpleCMS-3.3.6/plugins/custom_settings/tmpl/' // set this to the custom_settings plugin dir in your local install
+		$outputDir = '../GetSimpleCMS-3.3.5/plugins/custom_settings/tmpl/'; // set this to the custom_settings plugin dir in your local install
 		$placeholder = '-------------------';                     // placeholder used in HTML template files
 		$modes = array(                                           // HTML file list; section-title excluded because no build is required,
 			'edit' => array(                                        // others excluded because they share the same template

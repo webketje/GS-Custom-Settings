@@ -69,6 +69,7 @@
     "input_fancy_checkbox": "Чекбокс (иконка)",
     "input_fancy_radio": "Радио-кнопка (иконка)",
     "input_color": "Цвет",
+    "input_date": "дата",
     "input_section_title": "Название раздела",
     "placeholder_options": "Одна опция в строке",
     "placeholder_descr": "Опишите назначение установки",

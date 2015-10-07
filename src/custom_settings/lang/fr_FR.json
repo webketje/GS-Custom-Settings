@@ -70,6 +70,7 @@
     "input_fancy_radio": "radio (icône)",
     "input_color": "couleur",
     "input_section_title": "titre de section",
+    "input_date": "date",
     "placeholder_options": "Une option par ligne",
     "placeholder_descr": "Une description pour le paramètre",
     "placeholder_lookup": "nom_du_parametre",

@@ -3,4 +3,4 @@
 				name="{{ name('lookup') }}" id="{{ name('lookup') }}"
 				data-bind="disable: locked" 
 				title="{{ (locked() ? 'prop_is_locked' : '') | i18n}}">
-			<div data-bind="style.backgroundColor: data.value" class="colorbox"><input type="color" value="{{ data.value }}" tabindex="-1"></div>
+			<div data-bind="style.backgroundColor: data.value" class="colorbox"><input type="color" value="{{ colorBox }}" tabindex="-1"></div>

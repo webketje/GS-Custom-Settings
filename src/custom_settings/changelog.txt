@@ -1,3 +1,16 @@
+10/10/2015 - V. 0.6.1 (Bugfix)
+
+Changes:
+  - 'Save settings' button renamed to 'Save'
+Bugfixes: 
+  - Fixed: shitty image setting display
+  - Fixed: Image browser button does not gray out when it is disabled
+  - Fixed: Image browser does not reset to base folder when it is left open on a subfolder
+  - Fixed: Color picker does not open on the right color when an RGB/RGBA/webcolor/3-digit-hex or no value is set
+  - Fixed: Loading empty options array for radio/select settings causes minor JS error
+  - Fixed: Import over existing tab causes recursive error
+  - Fixed: Date setting not translated
+
 04/10/2015 - V. 0.6 (JS Renaissance)
 
 New:
@@ -24,7 +37,7 @@ Changes:
 Bugfixes:
   - Fixed all minor multi-selection bugs in Edit mode
   - Fixed potential export bugs: filename for older browsers & appropriate encoding for non-ANSI chars
-	
+  
 07/09/2015 - V 0.5.1 (Bugfix)
 
 New:
@@ -32,7 +45,7 @@ New:
 Bugfixes:
   - Fixed setting folding automatically when type was changed
   - Fixed default language en_US when GS lang is not available for plugin
-	
+  
 25/05/2015 - V. 0.5 (Cyrillic)
 
 New: 

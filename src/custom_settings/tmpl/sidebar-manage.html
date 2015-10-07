@@ -1,5 +1,5 @@
 {{ #foreach: items }}
-	<li class="{{ $parent.tabClass($index) }}" data-bind="click: $parent.select">
-		<a href="{{ $parent.tabHash($data) }}">{{ data.label }}</a>
-	</li>
+  <li class="{{ $parent.tabClass($index) }}" data-bind="click: $parent.select">
+    <a href="{{ $parent.tabHash($data) }}">{{ data.label }}</a>
+  </li>
 {{ /foreach }}

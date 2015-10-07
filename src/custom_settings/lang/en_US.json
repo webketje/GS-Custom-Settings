@@ -68,6 +68,7 @@
     "input_switch": "switch",
     "input_color": "color",
     "input_section_title": "section title",
+    "input_date": "date",
     "placeholder_options": "One option per line",
     "placeholder_descr": "A description for the setting",
     "placeholder_lookup": "setting_name",

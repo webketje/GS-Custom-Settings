@@ -70,6 +70,7 @@
     "input_fancy_radio": "radio (symbol)",
     "input_color": "farbe",
     "input_section_title": "überschrift",
+    "input_date": "datum",
     "placeholder_options": "Eine option pro Zeile",
     "placeholder_descr": "Eine Beschreibung für die Einstellung",
     "placeholder_lookup": "einstellung_name",

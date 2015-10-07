@@ -70,6 +70,7 @@
     "input_fancy_radio": "keuzerondje (icoon)",
     "input_color": "kleur",
     "input_section_title": "titel",
+    "input_date": "datum",
     "placeholder_options": "Een optie per lijn",
     "placeholder_descr": "Beschrijving voor de instelling",
     "placeholder_lookup": "naam_instelling",
