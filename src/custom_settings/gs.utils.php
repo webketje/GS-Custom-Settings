@@ -29,7 +29,7 @@
   public static function pluginIsActive($name) 
   {
     global $live_plugins;
-    $plugin = $live_plugins[$name . '.php'];
+    $plugin = @$live_plugins[$name . '.php'];
     if (isset($plugin) && $plugin === 'true')
       return true;
     return false;
