@@ -206,9 +206,12 @@
   SettingList.prototype.replace = function(opts, e) {
     var data  = ko.toJS(opts.data)
       , items = this.items();
+     
+    // section titles don't have an "expanded" property, avoid JS error.
+    if (data.type !== 'section-title')
+      data.expanded = opts.expanded();
       
     data.type = e.options[e.selectedIndex].value;
-    data.expanded = opts.expanded();
     // we do not want the typical insert/remove animation for simply changing a type,
     // so pause animation while we modify the array
     doNotAnimate = true;
@@ -429,6 +432,10 @@
    *         by clearing the interval, and resetting the array to its original data
    */
   SettingList.prototype.dispose = function() {
+    this.items().forEach(function(item) {
+      if (item.expanded)
+        item.expanded(false);
+    });
     if (this.showLoader()) {
       clearInterval(bufferInterval);
       this.items(dataOnInit);

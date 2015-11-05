@@ -1,9 +1,7 @@
 requirejs.config({
-  // for production this should be changed to ../plugins/custom_settings/js/
   baseUrl: '../plugins/custom_settings/js/'
   , paths: {
       lib: 'lib'
-    , jquery: 'lib/jquery'
     , models: 'models'
     , modules: 'modules'
     , templates: '../tmpl'
@@ -32,7 +30,7 @@ function(globals, ko, punches, cs, App, sMod, Tab, anim, domReady) {
   
     // import globals and instantiate app
     var $    = globals.$
-      ,  i18n = globals.i18n
+      , i18n = globals.i18n
       , app  = window.GSCS = new App();
   
     // it is impossible to have control over the outer sidebar HTML in GS, 
@@ -75,9 +73,14 @@ function(globals, ko, punches, cs, App, sMod, Tab, anim, domReady) {
     };
   }
   ko.utils.registerEventHandler(document.body, 'keydown', function(e) {
-    if (e.ctrlKey && e.keyCode === 70) {
-      e.preventDefault();
-      document.getElementById('setting-search').getElementsByTagName('input')[0].focus();
+    if (e.ctrlKey) {
+      if (e.keyCode === 70) {
+        e.preventDefault();
+        document.getElementById('setting-search').getElementsByTagName('input')[0].focus();
+      } else if (e.keyCode === 83) {
+        e.preventDefault();
+        app.saveData.call(app);
+      }
     }
   });
   app.getJSON('getDataFile', function(data) {

@@ -53,7 +53,7 @@
     "tab_down": "Tab nach unten verschieben",
     "tab_del": "Tab entfernen",
     "tab_add": "Tab einfügen",
-    "tab_proptoggle": "Tab labels/lookups zeigen",
+    "tab_prop": "Tab labels/lookups zeigen",
     "cmd_export_as": "Tab exportiern als: ",
     "cmd_export": "Export",
     "cmd_import": "Import",

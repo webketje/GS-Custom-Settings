@@ -73,12 +73,6 @@
     // plugin or theme settings might have default properties (in order to enable resetting values)
     if (opts.default) 
       this.data.default = opts.default;
-      
-    // settings might store additional untracked properties which should be saved as well
-    for (var prop in opts) {
-      if (!this.data.hasOwnProperty(prop)) 
-        this.data[prop] = opts[prop];
-    }
     
     // helpers
     this.hidden = ko.pureComputed(function() { return this.data.access() === 'hidden' }, this);
@@ -92,6 +86,12 @@
     this.expandIcon = ko.pureComputed(function() {
       return 'fa fa-fw fa-' + (this.expanded() ? 'minus' : 'plus') + '-square';
     }, this);
+      
+    // settings might store additional untracked properties which should be saved as well
+    for (var prop in opts) {
+      if (!this.data.hasOwnProperty(prop) && !this.hasOwnProperty(prop)) 
+        this.data[prop] = opts[prop];
+    }
   };
   
   /** @method Base.name & SectionTitle.name
@@ -149,17 +149,25 @@
    */
   var Text = function(opts) {
     Base.call(this, opts || {});
-    this.data.i18n = ko.observableArray(opts.i18n || null);
+    var self = this;
+    this.data.i18n = ko.observableArray();
+    ko.utils.arrayForEach(globals.GS.config.i18nLangs, function(item, i) {
+      self.data.i18n.push(ko.observable(opts.i18n && opts.i18n[i] ? opts.i18n[i] : ''));
+    });
     this.activeLang = ko.observable(opts.i18n ? 0 : -1);
     this.i18n = ko.pureComputed({
       read: function() { return this.activeLang() > -1 ? true : false },
       write: function(value) { 
-        var newArr = []
+        var newArr = [];
         if (value) {
           for (var i = 0; i < globals.GS.config.i18nLangs.length; i++) {
-            newArr.push(ko.observable(this.data.value()));
+            if (!newArr[i])
+              newArr[i] = ko.observable(this.data.value());
+            newArr[i](this.data.value());
           }
-        }
+        // if the setting is reverted to non-i18n, set value to the first language's value
+        } else
+          this.data.value(this.data.i18n()[0]);
         this.data.i18n(newArr);
         this.activeLang(value ? 0 : -1); 
       } 
@@ -173,8 +181,13 @@
    */
   Text.prototype.getData = function() {
     var result = Base.prototype.getData.call(this);
-    if (this.i18n && ko.utils.unwrapObservable(this.data.i18n).length < 1)
+    result.i18n = ko.toJS(this.data.i18n);
+    
+    if (result.i18n.join('').length === 0)
       delete result.i18n;
+    else if (result.i18n.length) {
+      result.value = result.i18n[0];
+    }
     return result;
   };
   
@@ -185,7 +198,7 @@
     Base.call(this, opts || {});
     this.icon = ko.observable(opts.type.indexOf('icon') > -1 ? true : false);
     this.template.manage = ko.pureComputed(function() {
-      return (this.icon() ? 'icon-' : '') + 'checkbox-manage' ;
+      return (this.icon() ? 'icon-' : '') + this.data.type + '-manage' ;
     }, this);
   };
   Checkbox.prototype = Object.create(Base.prototype);
@@ -199,24 +212,29 @@
   var Color = function(opts) {
     Base.call(this, opts || {});
     this.template.edit = 'base-edit';
-    this.colorBox = ko.pureComputed(function() {
-      var value = this.data.value().trim(), temp;
-      // handle empty color value
-      if (!value.length)
-        return '#FFFFFF';
-      // handle 3-digit hex colors
-      if (value.indexOf('#') > -1 && value.length === 4) {
-        temp = value.replace('#', '').split('');
-        return '#' + temp[0] + temp[0] + temp[1] + temp[1] + temp[2] + temp[2];
-      }
-      // handle named web colors
-      if (webcolors.hasOwnProperty(value))
-        return webcolors[value];
-      // handle rgb colors
-      if (value.match('rgb'))
-        return rgbToHex(value);
-      return value;
-    }, this);
+    this.colorBox = ko.pureComputed({
+	    read: function() {
+	      var value = this.data.value().trim(), temp;
+	      // handle empty color value
+	      if (!value.length)
+	        return '#FFFFFF';
+	      // handle 3-digit hex colors
+	      if (value.indexOf('#') > -1 && value.length === 4) {
+	        temp = value.replace('#', '').split('');
+	        return '#' + temp[0] + temp[0] + temp[1] + temp[1] + temp[2] + temp[2];
+	      }
+	      // handle named web colors
+	      if (webcolors.hasOwnProperty(value))
+	        return webcolors[value];
+	      // handle rgb colors
+	      if (value.match('rgb'))
+	        return rgbToHex(value);
+	      return value;
+	    }, 
+	    write: function(value) {
+	      this.data.value(value.toUpperCase())
+	    }
+	  }, this);
   };
   Color.prototype = Object.create(Base.prototype);
   Color.constructor = Color;
@@ -236,7 +254,6 @@
       },
       write: function(value) {
         _value(value ? new Date(value).getTime()/1000 : null);
-        console.log(_value());
       }
     });
   };

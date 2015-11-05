@@ -39,6 +39,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
       return 'tablist-' + self.mode();
     }).extend({rateLimit: 100});
     this.config = JSON.parse(document.getElementById('cs-config').value);
+    this.config.editPerm = this.config.editPerm === 'false' ? false : true;
     // used in case the admin directory is set to non-default in GS.
     this.config.adminDir = (function() {
       var l = location.href.slice(0, location.href.lastIndexOf('/')); 
@@ -132,6 +133,9 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
     this.mode(mode === 'edit' ? 'manage' : 'edit');
   };
   
+  /** @function CS.addHook
+   *  @descr enables other plugins to add hooks to execute for their settings
+   */
   CS.prototype.addHook = function(tabLookup, hook) {
     var tab = ko.utils.arrayFirst(this.data(), function(tabObj) {
       return tabObj.tab.lookup() === tabLookup;
@@ -197,7 +201,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
    *  @returns true if changes have taken place (cached copy !== current data)
    */
   CS.prototype.checkForChanges = function() {
-    var data  = this.data()
+    var data  = ko.toJS(this.data())
       , _data = this._data
       , tabData,      _tabData
       , settingsData, _settingsData
@@ -219,18 +223,21 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
           }
         }
       }
-      settingsData = data[i].settings();
+      settingsData = data[i].settings;
       _settingsData = _data[i].settings;
       // if there are more/less settings in the current tab than at page load: data has been changed
       if (settingsData.length !== _settingsData.length) 
         return true;
       for (var s = 0; s < settingsData.length; s++) {
-        setting = ko.toJS(settingsData[s].getData());
-        // original data copy hasn't been passed to a constructor
-        _setting = Setting[_settingsData[s].data.type].prototype.getData.call(_settingsData[s]);
+        setting = settingsData[s].getData();
+        _setting = _settingsData[s].getData();
         // if the tab is a site tab, all properties on a setting could have changed
         if (data[i].tab.data.type === 'site') {
-          for (var prop in setting) {
+          // starting in v0.6, empty properties are removed from the output.
+          // As such     
+          if (Object.keys(setting).length !== Object.keys(_setting).length)
+            return true;
+          for (var prop in setting) {    
             // this is mainly for arrays
             if (typeof setting[prop] === 'object') {
               if (setting[prop].join('') !== _setting[prop].join(''))
@@ -254,7 +261,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
   
   CS.prototype.getJSON = function(action, callback) {
     var self = this;
-    $.ajax({ url: this.config.handler, type: 'GET', data: {
+    $.ajax({ url: this.config.handler, type: 'POST', data: {
       action: action, 
       path: this.config.handler, 
       requestToken: this.config.requestToken, 
@@ -278,7 +285,6 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
     $.ajax({ 
         url: this.config.handler
       , type: 'POST'
-      , contentType: 'application/x-www-form-urlencoded;'
       , data: {  
           action: action
         ,  path: this.config.handler
@@ -294,6 +300,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
       }
     })
     .fail(function(jqXHR, status, error) {
+       console.log(data);
       if (callback && typeof callback === 'function') { 
         callback('error', error);
       }
@@ -306,17 +313,19 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
   CS.prototype.saveData = function() {
     var d = this.data()
       , self = this
-      ,  result = {};
+      , result = {};
     
     // If no changes have taken place, do not save. If there's a naming conflict, notify error. 
     // Return in both cases
-    if (!this.checkForChanges() || this.checkForNamingConflict())
+    if (this.checkForNamingConflict() || !this.checkForChanges())
       return;
       
     this.sendJSON('saveData', this.formatExport(), function(status) {
-      if (status === 'success')
+      if (status === 'success') {
         notify(i18n('SETTINGS_UPDATED'), 'updated');
-      else 
+        // update the cached data so the checkForChanges function compares to the latest saved data
+        self._data = ko.toJS(self.data());
+      } else 
         notify(i18n('error_save'), 'error');
     });
   };
@@ -347,6 +356,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
     return formatted ? ko.toJSON(result, null, 2) : ko.toJSON(result);
   };
   
+  
   CS.prototype.formatTab = function(tabEntity) {
     var result = {
       tab     : tabEntity.tab.getData()
@@ -357,6 +367,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
     return ko.toJS(result);
   };
   
+  
   CS.prototype.resetValues = function() {
     var settings = this.data()[this.state.tabSelection()].settings();
     for (var i = 0; i < settings.length; i++) {
@@ -364,6 +375,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
         settings[i].data.value(settings[i].data['default']);
     }
   }
+  
   CS.prototype.checkPluginVersion = function() {
     var self = this;
     this.getJSON('loadPluginInfo', function(data) {
@@ -383,7 +395,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
   };
 
   var saveText = function(data, fileName) {
-    // IE10+, Moz FF 20+, Opera 15+
+    // IE10+, Moz FF 20+, Opera 15+, Chrome & Safaari
     if (window.Blob) {
       window.saveAs(new Blob([data], {type: "text/plain; charset=utf-8"}), fileName);
     // all older browsers
@@ -426,9 +438,9 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
     // else it is a collection of tabs. In that case, we need to loop over each one for the export
     // @TODO: add an option to export EVERYTHING vs only site tabs (currently it's the first)
     } else {
-      data = [];
+      data = {site: []};
       ko.utils.arrayForEach(this.data(), function(tabObj) {
-        data.push(self.formatTab.call(self, tabObj));
+        data.site.push(self.formatTab.call(self, tabObj));
       }, this);    
     }    
     
@@ -469,11 +481,11 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
     var findTab = this.returnTab
       , mergeTabs= this.mergeTabs
       , addNewTab= this.addTab
-      , self = this;
-    var value = (e.target || e.srcElement).value
-      ,  file = (e.target || e.srcElement).files[0], fRead, result
-      ,  allTabs = this.data()
-      ,  tabObj = {},
+      , self = this
+      , value = (e.target || e.srcElement).value
+      , file = (e.target || e.srcElement).files[0], fRead, result
+      , allTabs = this.data()
+      , tabObj = {},
         sType = (function settingsType() {
           value = value.indexOf('\\') > -1 ? value.slice(value.lastIndexOf('\\')+1) : value;
           if (value.match('theme_data')) {
@@ -486,6 +498,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
             return 'tab';
           }
         }());
+        
     // Check for the various File API support + additional select check
     if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
       notify('error_jsonimport_invalidbrowser','error');
@@ -498,13 +511,18 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
       }
       fRead = new FileReader();
       fRead.readAsText(file);
-      var waitForLoad = setInterval(function() {
+      fRead.onload = function() {
         if (fRead.result.length) {
           try {
             var result = JSON.parse(fRead.result);
           } catch (e) {
             notify('error_jsonimport_invalidjson', 'error');
             return;
+          }
+          if (self.mode() === 'manage') {
+            var sidebar = document.getElementById('sidebar').getElementsByTagName('ul')[0];
+            ko.cleanNode(sidebar);
+            ko.applyBindingsToNode(sidebar, null, ko.contextFor(e.target || e.srcElement).$root);
           }
           switch (sType) {
             case 'theme':
@@ -530,6 +548,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
                 } else
                   addNewTab.call(self, result.site[i]);
               }
+              
             break;
             case 'plugin':
               var pluginTab = findTab.call(self, result.tab.lookup);
@@ -540,9 +559,8 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
                 notify('error_jsonimport_pluginmissing', 'error');            
             break;
           }
-          clearInterval(waitForLoad);
         }
-      }, 100);
+      };
     }
   };
   
@@ -566,6 +584,7 @@ define(['modules/globals', 'lib/knockout', 'lib/filesaver', 'models/tab', 'model
       while (len--)
         if (tabs[len].tab.data.type !== 'site') break;
       this.data.splice(len-2 || 0, 0, tabObj);
+      this.data.valueHasMutated();
   };
   
   /** @method CS.mergeTabs

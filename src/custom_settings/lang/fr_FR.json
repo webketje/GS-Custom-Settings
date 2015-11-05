@@ -53,7 +53,7 @@
     "tab_down": "Déplacer l'onglet vers le haut",
     "tab_del": "Supprimer l'onglet",
     "tab_add": "Insérer un onglet",
-    "tab_proptoggle": "Afficher labels/balises des onglets",
+    "tab_prop": "Afficher labels/balises des onglets",
     "cmd_export_as": "Exporter l'onglet en tant que: ",
     "cmd_export": "Exporter",
     "cmd_import": "Importer",

@@ -1,14 +1,14 @@
 ## GS Custom Settings
 A GetSimple CMS plugin for custom site, theme and plugin settings.
-- Version: 0.6.1
-- Release Date: 07 October 2015
+- Version: 0.6.2
+- Release Date: 05 November 2015
 - Documentation: http://webketje.com/projects/gs-custom-settings
 - Author: Kevin Van Lierde
 - Author URL: http://webketje.com
 - License: [Creative Commons Attribution-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-sa/4.0/)
 
 #### Description
-GS Custom Settings is a plugin for [GetSimple CMS](http://get-simple.info/) which lets webmasters/ site managers, theme and plugin developers implement and use their own custom settings for output, configuration, and cross-plugin/-theme communication. It's a bit like the [custom fields plugin](http://get-simple.info/extend/plugin/customfields/22/), but not for pages. The plugin offers 8 different types of input to choose from, 3 access levels, per-user editing permission, and an easy UI to create, import and export the settings. Once activated, a new tab 'Site', is added, where one will find all settings created with the plugin, grouped by sidebar tab.
+GS Custom Settings is a plugin for [GetSimple CMS](http://get-simple.info/) which lets webmasters/ site managers, theme and plugin developers implement and use their own custom settings for output, configuration, and cross-plugin/-theme communication. It's a bit like the [custom fields plugin](http://get-simple.info/extend/plugin/customfields/22/), but not for pages. The plugin offers 9 different types of input to choose from, 3 access levels, per-user editing permission, and an easy UI to create, import and export the settings. Once activated, a new tab 'Site', is added, where one will find all settings created with the plugin, grouped by sidebar tab.
 
 #### Features
 
@@ -23,7 +23,7 @@ GS Custom Settings is a plugin for [GetSimple CMS](http://get-simple.info/) whic
 * Build and export settings directly through the UI for your plugin/ theme
 * Extend existing themes and plugins with custom settings
 * Access settings from other themes and plugins
-* (almost) fully i18n, even custom theme and plugin settings I18n-enabled
+* Fully i18n, even custom theme and plugin settings I18n-enabled
 * Available in English, German, French, Dutch, Spanish & Russian
 
 #### Plugin functions

@@ -53,7 +53,7 @@
     "tab_down": "Move tab down",
     "tab_del": "Remove tab",
     "tab_add": "Add tab",
-    "tab_proptoggle": "Toggle tab labels/lookups",
+    "tab_prop": "Toggle tab labels/lookups",
     "cmd_export_as": "Export tab as: ",
     "cmd_export": "Export",
     "cmd_import": "Import",

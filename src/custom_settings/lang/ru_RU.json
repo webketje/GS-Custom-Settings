@@ -53,7 +53,7 @@
     "tab_down": "Переместить вкладку вниз",
     "tab_del": "Удалить вкладку",
     "tab_add": "Добавить вкладку",
-    "tab_proptoggle": "Toggle tab labels/lookups",
+    "tab_prop": "Toggle tab labels/lookups",
     "cmd_export_as": "Экспортировать вкладку как: ",
     "cmd_export": "Экспорт",
     "cmd_import": "Импорт",

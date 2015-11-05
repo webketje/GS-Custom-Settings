@@ -37,23 +37,6 @@ define('GS_CUSTOM_SETTINGS', customSettings::$version);
 // GS hooks
 add_action('nav-tab', 'createNavTab', array('site', 'custom_settings', $custom_settings_lang['tab_name']));
 
-// import vars & globalize others
-global $live_plugins, $mu_active, $i18n_active;
-
-// give priority to MultiUser plugin if available
-// if MultiUser is used, the settings-user hook doesn't work, so use common (as used by same author's plugin GS Blog)
-if (isset($live_plugins['user-managment.php']) && $live_plugins['user-managment.php'] !== 'false') {
-	add_action('common','mu_custom_settings_user_permissions');
-	$mu_active = true;
-} else {
-	add_action('settings-user','custom_settings_user_permissions');
-	$mu_active = false;
-}
-if (isset($live_plugins['i18n_base.php']) && $live_plugins['i18n_base.php'] !== 'false')
-	$i18n_active = true;
-else
-	$i18n_active = false;
-	
 // front-end filter (WYSIWYG)
 add_filter('content', 'custom_settings_filter');
 
@@ -73,7 +56,7 @@ function custom_settings_render($plugin, $output_func) {
 		echo '</div>';
 	}
 }
-// API functions
+// stable API functions
 function return_setting($tab, $setting, $prop=NULL) { 
 	return customSettings::returnSetting($tab, $setting, $prop); 
 }
@@ -93,7 +76,40 @@ function get_tab_link($tab=NULL, $linkText='settings') {
 	$id = $tab ? '#' . $tab : '';
 	echo '<a href="' . $SITEURL . 'admin/load.php?id=custom_settings' . $id . '">' . $linkText . '</a>';
 }
+
 // use with caution
 function remove_setting($tab, $setting)             { customSettings::removeSetting($tab, $setting); }
 function set_setting($tab, $setting, $newValue)     { customSettings::setSetting($tab, $setting, $newValue); }
+
+
+// Inter-plugin compatibility tweaks
+
+// Fallback for GS 3.3- pluginIsActive function
+if (!function_exists('pluginIsActive')) {
+	function pluginIsActive($pluginid){
+		global $live_plugins;
+		return isset($live_plugins[$pluginid.'.php']) && ($live_plugins[$pluginid.'.php'] == 'true' || $live_plugins[$pluginid.'.php'] === true);
+	}
+}
+
+// give priority to MultiUser plugin if available
+// if MultiUser is used, the settings-user hook doesn't work, so use common (as used by same author's plugin GS Blog)
+if (pluginIsActive('user-managment')) {
+	add_action('common','mu_custom_settings_user_permissions');
+} else {
+	add_action('settings-user','custom_settings_user_permissions');
+}
+
+// Avoid conflicts with ItemManager assets
+if (pluginIsActive('imanager') && isset($_GET['id']) && $_GET['id'] === 'custom_settings') {
+
+	function gscs_imanager_compat() {
+		dequeue_style('jqui', GSBACK);
+		dequeue_style('imstyle', GSBACK);
+		dequeue_style('imstylefonts', GSBOTH);
+		dequeue_style('blueimp', GSBACK);
+	}
+	add_action('admin-pre-header', 'gscs_imanager_compat');
+}
+	
 ?>

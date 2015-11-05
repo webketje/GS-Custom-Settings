@@ -19,7 +19,7 @@ define(['lib/knockout', 'modules/state'], function(ko, state) {
     this.searchTerm.subscribe(this.filterSettings.bind(this));
     
     // clear search when tabSelection or mode changes
-    state.tabSelection.subscribe(this.clear.bind(this));
+    state.tabSelection.subscribe(this.filterSettings.bind(this));
     state.mode.subscribe(this.clear.bind(this));
   }
   

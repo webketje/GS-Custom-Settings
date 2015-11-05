@@ -53,7 +53,7 @@
     "tab_down": "Bajar pestaña",
     "tab_del": "Borrar pestaña",
     "tab_add": "Añadir pestaña",
-    "tab_proptoggle": "Mostrar etiquetas/busquédas de las pestañas",
+    "tab_prop": "Mostrar etiquetas/busquédas de las pestañas",
     "cmd_export_as": "Exportar pestaña como: ",
     "cmd_export": "Exportar",
     "cmd_import": "Importar",

@@ -1,4 +1,26 @@
-10/10/2015 - V. 0.6.1 (Bugfix)
+05/11/2015 - V. 0.6.2 (Bugfix)
+
+New:
+	- Keyboard shortcut Ctrl + S to save settings
+	- Backups of settings are now saved to backups/other/custom_settings
+Bugfixes: 
+	- Fixed: Minor JS error when changing setting type from 'section-title' to something else
+	- Fixed: Save button doesn't record a change when a property is not in the cached data, but present in current data
+	- Fixed: Checking for changes compared only to data on first load (now refreshed after every save)
+	- Fixed: FontAwesome library icons (upgraded to 4.4.0) & cleaned from corruption
+	- Fixed: sidebar toggle for lookup/ label editing not showing up
+	- Fixed: 'expanded' property shouldn't be saved to data output
+	- Fixed: bugs with multilingual settings
+	- Fixed: bugs with editing permission
+	- Fixed: Litespeed server doesn't update JSON content on save with x-www-urlencoded content-type
+	- Fixed: PHP non-object notice when admin.xml missing
+	- Fixed: Switch setting display in Manage mode showed as checkbox
+	- Fixed: Color Setting not updating when using color picker
+	- Fixed: Search works cross-tab again
+	- Fixed: broken datepicker display when imanager activated
+	- Fixed import/export bugs: incompatible export format for 'all' site tabs; tab list not updating on import in manage mode (both since 0.6)
+
+07/10/2015 - V. 0.6.1 (Bugfix)
 
 Changes:
   - 'Save settings' button renamed to 'Save'

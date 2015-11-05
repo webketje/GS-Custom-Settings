@@ -53,7 +53,7 @@
     "tab_down": "Tab naar boven verplaatsen",
     "tab_del": "Tab verwijderen",
     "tab_add": "Tab toevoegen",
-    "tab_proptoggle": "Tab labels/lookups tonen",
+    "tab_prop": "Tab labels/lookups tonen",
     "cmd_export_as": "Exporteer tab als: ",
     "cmd_export": "Exporteren",
     "cmd_import": "Importeren",

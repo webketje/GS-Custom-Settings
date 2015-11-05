@@ -1,5 +1,5 @@
 <?php if (isset($_REQUEST) && isset($_REQUEST['id']) && isset($_REQUEST['requestToken']) && isset($_REQUEST['adminDir'])) {
-  
+
     require_once('../../' . $_REQUEST['adminDir'] .'/inc/common.php');
     require_once('filehandler.class.php');
     require_once('customsettings.class.php');

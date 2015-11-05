@@ -39,7 +39,7 @@
   .edit .setting.active .fa-location-arrow, #expand-all .fa-minus-square, 
   .cs-toolbar button:not([disabled]):hover i, .edit .setting .fa-minus-square, .cs-toolbar button.active { color: <?php echo $sec_light; ?>; }
   #sidebar .snav li.current a { text-shadow: 1px 1px 0px <?php echo $sec_dark; ?>; background-color: <?php echo $sec_light; ?>; }
-<?php if (!flatBlue()) { ?> #sidebar .snav li { color: <?php echo trim((string)$css->primary->lightest); ?>; }<?php } ?>
+<?php if (!flatBlue() && $css) { ?> #sidebar .snav li { color: <?php echo trim((string)$css->primary->lightest); ?>; }<?php } ?>
   ::selection { background-color: <?php echo $sec_light; ?>; color: white; }
 <?php if (flatBlue()) { ?>
   #sidebar .snav h3 { font-size: 20px; margin-bottom: 16px; }

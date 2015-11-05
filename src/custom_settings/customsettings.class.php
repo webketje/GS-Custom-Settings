@@ -5,7 +5,7 @@ if (!class_exists('customSettings')) {
     
     private static $devMode = false;
     private static $defaultJSON = '{"site": []}';
-    public static $version = '0.6.1';    
+    public static $version = '0.6.2';    
     
     //////////////////////////////////////////////////////////////////////////
     //                                                                      //
@@ -84,6 +84,7 @@ if (!class_exists('customSettings')) {
       $datFile['settings'] = $merged;
       }
     }
+    
     /** Retrieves settings from all plugins using this plugin
      *  if they are activated.
      */
@@ -193,6 +194,7 @@ if (!class_exists('customSettings')) {
      */
     public static function retrieveAllSettings() 
     {
+      self::gscsBackup();
       $customSettings = self::retrieveSiteSettings();
       $pluginSettings = self::retrievePluginSettings();
       $themeSettings = self::retrieveThemeSettings();
@@ -252,6 +254,15 @@ if (!class_exists('customSettings')) {
       file_put_contents($paths['site'], fileUtils::indentJSON($siteData));
     }
     
+    private static function gscsBackup() {
+      $bakpath = GSBACKUPSPATH . 'other/custom_settings/';
+      if (!file_exists($bakpath))
+        mkdir($bakpath); 
+      $csfiles = array_diff(scandir(GSDATAOTHERPATH . 'custom_settings'), array('.', '..', '.htaccess'));
+      foreach($csfiles as $csfile)
+        createBak($csfile, GSDATAOTHERPATH . 'custom_settings/', $bakpath);
+    }
+    
     //////////////////////////////////////////////////////////////////////////
     //                                                                      //
     //                          Settings PHP API                            //
@@ -264,7 +275,7 @@ if (!class_exists('customSettings')) {
      */
     public static function getSetting($tab, $setting, $echo=TRUE) 
     {
-      global $custom_settings, $custom_settings_dictionary, $i18n_active, $language;
+      global $custom_settings, $custom_settings_dictionary, $language;
       $tab = $tab === 'theme' ? 'theme_settings' : $tab;
       
       if (isset($custom_settings['data'][$tab]) && isset($custom_settings['data'][$tab]['settings'][@$custom_settings_dictionary[$tab][$setting]])) {
@@ -347,14 +358,14 @@ if (!class_exists('customSettings')) {
      */
     public static function getI18nSetting($tab, $setting, $echo=TRUE) 
     {
-      global $i18n_active, $language;
-      if ($i18n_active && isset($language)) {
+      global $language;
+      if (defined('I18N_DEFAULT_LANGUAGE') && isset($language)) {
         $langs = return_i18n_available_languages();
         $settingVals = self::returnSetting($tab, $setting, 'i18n');
         if ($echo === TRUE) 
-          echo $settingVals ? $settingVals[$language] : '';
+          echo $settingVals ? $settingVals[array_search($language, $langs)] : '';
         else
-          return $settingVals ? $settingVals[$language] : $settingVals;
+          return $settingVals ? $settingVals[array_search($language, $langs)] : $settingVals;
       }
       return;
     }
@@ -427,7 +438,7 @@ if (!class_exists('customSettings')) {
       $userdata = getXML(GSUSERSPATH . $USR . '.xml');
       if (!isset($userdata->KO_EDIT)) 
         return 'true';
-      return $userdata->KO_EDIT;
+      return (string)$userdata->KO_EDIT;
     }
     
     /** Sets per-user editing permission with Multi-User plugin (v1.8.2 onwards)
@@ -475,7 +486,7 @@ if (!class_exists('customSettings')) {
      */
     public static function init() 
     {
-      global $custom_settings, $i18n_initialized, $LANG, $TEMPLATE, $SITEURL, $mu_active, $pagesArray;
+      global $custom_settings, $i18n_initialized, $LANG, $TEMPLATE, $SITEURL, $pagesArray, $id;
       exec_action('custom-settings-load');
       $tmpl = GSPLUGINPATH . 'custom_settings/tmpl/'; 
       include($tmpl . 'view.php');
@@ -502,7 +513,7 @@ if (!class_exists('customSettings')) {
     
     public static function getConfig() 
     {
-      global $LANG, $TEMPLATE, $SITEURL, $mu_active;
+      global $LANG, $TEMPLATE, $SITEURL;
       require_once(GSPLUGINPATH . 'custom_settings/filehandler.class.php');
       require_once(GSPLUGINPATH . 'custom_settings/gs.utils.php');
       $conf = array(
@@ -512,7 +523,7 @@ if (!class_exists('customSettings')) {
         'handler'     => $SITEURL . 'plugins/custom_settings/customsettings.handler.php',
         'dataFile'    => $SITEURL . 'custom_settings/data.json',
         'pluginVer'   => self::$version,
-        'editPerm'    => $mu_active ? self::mu_getUserPermission() : self::getUserPermission(),
+        'editPerm'    => GSutils::pluginIsActive('user-managment') ? self::mu_getUserPermission() : self::getUserPermission(),
         'siteTmpl'    => strtolower($TEMPLATE),
         'requestToken'=> fileUtils::requestToken('kosstt'),
         'adminDir'    => GSADMINPATH,
@@ -593,21 +604,38 @@ if (!class_exists('customSettings')) {
     {
       require_once('filehandler.class.php');
       $path  = GSDATAOTHERPATH . 'custom_settings/';
-      $files = array_diff(scandir($path), array('.','..'));
+      $files = array_diff(scandir($path), array('.','..', '.htaccess'));
+      $flag = false;
       foreach ($files as $file) {
         $data = file_get_contents($path . $file);
-        if (strpos($data, 'fancy-') > -1 || strpos($data, 'values') > -1) {
-          $data = json_decode($data, TRUE);
-          foreach ($data['settings'] as &$setting) {
-            if (strpos($setting['type'], 'fancy-') > -1)
+        $data = json_decode($data, TRUE);
+        $tabs = array(&$data);
+          if (array_key_exists('site', $data) )
+            $tabs = &$data['site'];
+          foreach ($tabs as &$tab) {
+          foreach ($tab['settings'] as &$setting) {
+            if (strpos($setting['type'], 'fancy-') > -1) {
               $setting['type'] = str_replace('fancy', 'icon', $setting['type']);
+              $flag = true;
+            }
             if (array_key_exists('values', $setting)) {
               $setting['i18n'] = $setting['values'];
               unset($setting['values']);
+              $flag = true;
+            }
+            if (array_key_exists('langs', $setting)) {
+              $setting['i18n'] = $setting['langs'];
+              unset($setting['langs']);
+              $flag = true;
+            }
+            if (array_key_exists('i18n', $setting) && array_key_exists('value', $setting) && $setting['value'] !== $setting['i18n'][0]) {
+              $setting['value'] = $setting['i18n'][0];
+              $flag = true;
             }
           }
+          }
+        if ($flag === true) 
           file_put_contents($path . $file, fileUtils::indentJSON($data));
-        }
       }
     }
   }
