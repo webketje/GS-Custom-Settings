@@ -11,7 +11,6 @@ Author URI: http://webketje.com/
 require_once(GSPLUGINPATH . 'custom_settings/customsettings.class.php');
 
 // initiate customSettings
-customSettings::upgrade();
 customSettings::createDataSubfolder();
 $custom_settings = customSettings::retrieveAllSettings();
 $custom_settings_dictionary = customSettings::mapAllSettings();
