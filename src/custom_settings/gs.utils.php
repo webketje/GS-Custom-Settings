@@ -23,18 +23,7 @@
       }
     }
   }
-  /** checks whether a given plugin is enabled in GS.
-   * @param {string} $name - Name of the plugin FILE!!
-   */
-  public static function pluginIsActive($name) 
-  {
-    global $live_plugins;
-    $plugin = @$live_plugins[$name . '.php'];
-    if (isset($plugin) && $plugin === 'true')
-      return true;
-    return false;
-  }
-    
+  
   /** Remove a directory with all nested files
    *  Thanks to http://stackoverflow.com/questions/3349753/delete-directory-with-files-in-it#answer-3349792
    */

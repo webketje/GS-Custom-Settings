@@ -57,21 +57,6 @@ function(globals, ko, punches, cs, App, sMod, Tab, anim, domReady) {
         
     });
     
-  /**
-   *  @see http://stackoverflow.com/questions/2790001/fixing-javascript-array-functions-in-internet-explorer-indexof-foreach-etc
-   *  IE8 Array.indexOf polyfill By Bobbins
-   */
-  if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function(find, i) {
-      if (i === undefined) i = 0;
-      if (i < 0) i += this.length;
-      if (i < 0) i = 0;
-      for (var n = this.length; i < n; i++)
-        if (i in this && this[i] === find)
-          return i;
-      return -1;
-    };
-  }
   ko.utils.registerEventHandler(document.body, 'keydown', function(e) {
     if (e.ctrlKey) {
       if (e.keyCode === 70) {

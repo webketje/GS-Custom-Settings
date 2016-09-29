@@ -2,7 +2,7 @@
 /*
 Plugin Name: GS Custom Settings
 Description: A plugin for custom site, theme and plugin settings.
-Version: 0.6.1
+Version: 0.7
 Author: Kevin Van Lierde
 Author URI: http://webketje.com/
 */
@@ -80,16 +80,7 @@ function get_tab_link($tab=NULL, $linkText='settings') {
 function remove_setting($tab, $setting)             { customSettings::removeSetting($tab, $setting); }
 function set_setting($tab, $setting, $newValue)     { customSettings::setSetting($tab, $setting, $newValue); }
 
-
 // Inter-plugin compatibility tweaks
-
-// Fallback for GS 3.3- pluginIsActive function
-if (!function_exists('pluginIsActive')) {
-	function pluginIsActive($pluginid){
-		global $live_plugins;
-		return isset($live_plugins[$pluginid.'.php']) && ($live_plugins[$pluginid.'.php'] == 'true' || $live_plugins[$pluginid.'.php'] === true);
-	}
-}
 
 // give priority to MultiUser plugin if available
 // if MultiUser is used, the settings-user hook doesn't work, so use common (as used by same author's plugin GS Blog)
