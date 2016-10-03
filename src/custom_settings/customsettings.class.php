@@ -566,7 +566,7 @@ if (!class_exists('customSettings')) {
       $file = 'data.json';
       if (!file_exists($path)) mkdir($path);
       if (!file_exists($path . '.htaccess'))
-        file_put_contents($path . '.htaccess','Deny from all');
+        file_put_contents($path . '.htaccess','<FilesMatch "\.json"><IfModule !mod_authz_core.c>Deny from all</IfModule><IfModule mod_access_compat.c>Deny from all</IfModule><IfModule mod_authz_core.c><IfModule !mod_access_compat.c>Require all denied</IfModule></IfModule></FilesMatch>');
       if (!file_exists($path . $file)) {
         $contents = self::$defaultJSON;
         file_put_contents($path . $file, $contents);
