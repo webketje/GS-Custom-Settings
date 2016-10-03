@@ -599,45 +599,6 @@ if (!class_exists('customSettings')) {
       $file['strings']['traductors'] = $file['meta']['traductors'];
       return json_encode($file['strings']);
     }
-    
-    public static function upgrade() 
-    {
-      require_once('filehandler.class.php');
-      $path  = GSDATAOTHERPATH . 'custom_settings/';
-      $files = array_diff(scandir($path), array('.','..', '.htaccess'));
-      $flag = false;
-      foreach ($files as $file) {
-        $data = file_get_contents($path . $file);
-        $data = json_decode($data, TRUE);
-        $tabs = array(&$data);
-          if (array_key_exists('site', $data) )
-            $tabs = &$data['site'];
-          foreach ($tabs as &$tab) {
-          foreach ($tab['settings'] as &$setting) {
-            if (strpos($setting['type'], 'fancy-') > -1) {
-              $setting['type'] = str_replace('fancy', 'icon', $setting['type']);
-              $flag = true;
-            }
-            if (array_key_exists('values', $setting)) {
-              $setting['i18n'] = $setting['values'];
-              unset($setting['values']);
-              $flag = true;
-            }
-            if (array_key_exists('langs', $setting)) {
-              $setting['i18n'] = $setting['langs'];
-              unset($setting['langs']);
-              $flag = true;
-            }
-            if (array_key_exists('i18n', $setting) && array_key_exists('value', $setting) && $setting['value'] !== $setting['i18n'][0]) {
-              $setting['value'] = $setting['i18n'][0];
-              $flag = true;
-            }
-          }
-          }
-        if ($flag === true) 
-          file_put_contents($path . $file, fileUtils::indentJSON($data));
-      }
-    }
   }
 }
 ?>
