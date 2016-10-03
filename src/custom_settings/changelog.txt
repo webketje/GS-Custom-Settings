@@ -1,3 +1,8 @@
+09/05/2016 - V. 0.6.3 (Bugfix)
+
+Bugfixes: 
+	- Fixed: image save not working in some cases
+
 05/11/2015 - V. 0.6.2 (Bugfix)
 
 New:
