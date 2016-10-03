@@ -523,7 +523,7 @@ if (!class_exists('customSettings')) {
         'handler'     => $SITEURL . 'plugins/custom_settings/customsettings.handler.php',
         'dataFile'    => $SITEURL . 'custom_settings/data.json',
         'pluginVer'   => self::$version,
-        'editPerm'    => GSutils::pluginIsActive('user-managment') ? self::mu_getUserPermission() : self::getUserPermission(),
+        'editPerm'    => pluginIsActive('user-managment') ? self::mu_getUserPermission() : self::getUserPermission(),
         'siteTmpl'    => strtolower($TEMPLATE),
         'requestToken'=> fileUtils::requestToken('kosstt'),
         'adminDir'    => GSADMINPATH,

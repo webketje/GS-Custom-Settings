@@ -81,10 +81,17 @@ function remove_setting($tab, $setting)             { customSettings::removeSett
 function set_setting($tab, $setting, $newValue)     { customSettings::setSetting($tab, $setting, $newValue); }
 
 // Inter-plugin compatibility tweaks
+// Fallback for GS 3.3- pluginIsActive function
+if (!function_exists('pluginIsActive')) {
+	function pluginIsActive($pluginid){
+		global $live_plugins;
+		return isset($live_plugins[$pluginid.'.php']) && ($live_plugins[$pluginid.'.php'] == 'true' || $live_plugins[$pluginid.'.php'] === true);
+	}
+}
 
 // give priority to MultiUser plugin if available
 // if MultiUser is used, the settings-user hook doesn't work, so use common (as used by same author's plugin GS Blog)
-if (pluginIsActive('user-managment')) {
+if (function_exists('pluginIsActive') && pluginIsActive('user-managment')) {
 	add_action('common','mu_custom_settings_user_permissions');
 } else {
 	add_action('settings-user','custom_settings_user_permissions');
